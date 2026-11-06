@@ -12,7 +12,6 @@ export function Navbar() {
   const pathname = usePathname();
 
   // Header transparan hanya di halaman beranda (Home) ketika belum di-scroll DAN menu mobile sedang tertutup.
-  // Saat menu mobile dibuka, header menjadi putih solid terpadu tanpa penumpukan background.
   const isHomePage = pathname === "/";
   const isTransparent = isHomePage && !isScrolled && !mobileMenuOpen;
 
@@ -39,13 +38,13 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 w-full transition-colors duration-300 ease-in-out ${
+      className={`fixed top-0 left-0 right-0 z-50 w-full backdrop-blur-md transition-[background-color,border-color,box-shadow] duration-300 ease-in-out ${
         isTransparent
-          ? "bg-transparent border-b border-transparent"
-          : "bg-white/95 backdrop-blur-md border-b border-[#e2e7df] shadow-sm"
+          ? "bg-transparent border-b border-transparent shadow-none"
+          : "bg-white/95 border-b border-[#e2e7df] shadow-sm"
       }`}
     >
-      {/* Top Bar: Tinggi & padding dibuat konsisten (py-3.5) agar tidak ada gerakan/shrink saat scroll */}
+      {/* Top Bar: Tinggi & padding statis (py-3.5) agar tidak ada gerakan/shrink baik di desktop maupun mobile */}
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 sm:px-8 lg:px-12 py-3.5">
         {/* Brand: Clean Typography with Poppins */}
         <Link href="/" className="group flex items-center">
@@ -65,7 +64,7 @@ export function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop Navigation Links */}
+        {/* Desktop Navigation Links: Ukuran border & layout konstan tanpa gerakan */}
         <nav
           className={`hidden md:flex items-center gap-9 text-sm font-semibold transition-colors duration-300 ${
             isTransparent ? "text-white/90" : "text-[#52604d]"
@@ -78,14 +77,15 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-2 py-1 transition-colors duration-200 ${
+                className={`flex items-center gap-2 py-1 border-b-2 transition-colors duration-200 ${
                   isActive
                     ? isTransparent
-                      ? "text-[#65da3c] font-bold border-b-2 border-[#65da3c]"
-                      : "text-[#15370d] font-bold border-b-2 border-[#266210]"
-                    : isTransparent
-                    ? "hover:text-[#65da3c]"
-                    : "hover:text-[#15370d]"
+                      ? "text-[#65da3c] font-bold border-[#65da3c]"
+                      : "text-[#15370d] font-bold border-[#266210]"
+                    : "border-transparent " +
+                      (isTransparent
+                        ? "hover:text-[#65da3c]"
+                        : "hover:text-[#15370d]")
                 }`}
               >
                 <Icon
@@ -105,15 +105,11 @@ export function Navbar() {
           })}
         </nav>
 
-        {/* Desktop CTA Button */}
+        {/* Desktop CTA Button: Ukuran, border, dan padding terkunci statis agar tidak bergeser/berkedip saat scroll */}
         <div className="hidden md:flex items-center gap-4">
           <Link
             href="/lapor"
-            className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors duration-300 shadow-sm ${
-              isTransparent
-                ? "bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/25 shadow-black/20"
-                : "bg-[#266210] hover:bg-[#15370d] text-white shadow-emerald-900/10"
-            }`}
+            className="inline-flex items-center gap-2 rounded-xl bg-[#266210] hover:bg-[#15370d] text-white px-5 py-2.5 text-sm font-semibold border border-transparent shadow-sm transition-colors duration-200"
           >
             <PlusCircle className="h-4 w-4" />
             Unggah Laporan
