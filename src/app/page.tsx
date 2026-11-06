@@ -6,13 +6,11 @@ import {
   Sparkles,
   BarChart3,
   ArrowRight,
-  ShieldCheck,
-  ChevronRight,
 } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-[#f5f7f4]">
+    <div className="flex flex-col min-h-screen bg-[#f5f7f4] overflow-x-hidden">
       {/* Hero Section with Full-Width Video Background */}
       <section className="relative w-full min-h-[92vh] sm:min-h-[88vh] flex items-center justify-center overflow-hidden">
         {/* Ambient Video Background */}
@@ -26,20 +24,27 @@ export default function Home() {
           <source src="/videos/bali-hero.mp4" type="video/mp4" />
         </video>
 
-        {/* Sophisticated Dark Emerald Gradient Overlay for High Readability */}
+        {/* Sophisticated Dark Emerald Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#15370d]/80 via-[#15370d]/80 to-[#15370d]/95 backdrop-blur-[1px]" />
 
         {/* Hero Content Container */}
         <div className="relative z-10 mx-auto max-w-5xl px-6 py-20 sm:px-8 lg:px-12 w-full">
           <div className="text-left sm:text-center max-w-3xl sm:mx-auto">
             {/* Tagline Badge */}
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md px-3.5 py-1.5 text-xs font-semibold text-white/90 border border-white/15 shadow-sm">
+            <div
+              data-aos="fade-down"
+              className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md px-3.5 py-1.5 text-xs font-semibold text-white/90 border border-white/15 shadow-sm"
+            >
               <span className="flex h-2 w-2 rounded-full bg-[#48bb22] animate-pulse" />
               Bali Waste Intelligence System
             </div>
 
             {/* Main Headline - Left on mobile, center on desktop */}
-            <h1 className="mt-6 text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl leading-[1.15]">
+            <h1
+              data-aos="fade-up"
+              data-aos-delay="100"
+              className="mt-6 text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl leading-[1.18]"
+            >
               Pemantauan & Penanganan Sampah Bali Berbasis{" "}
               <span className="text-[#65da3c]">
                 Artificial Intelligence
@@ -47,14 +52,22 @@ export default function Home() {
             </h1>
 
             {/* Refined, Clean Description */}
-            <p className="mt-5 text-sm sm:text-base md:text-lg leading-relaxed text-gray-200/90 font-normal">
+            <p
+              data-aos="fade-up"
+              data-aos-delay="200"
+              className="mt-5 text-sm sm:text-base md:text-lg leading-relaxed text-gray-200/90 font-normal"
+            >
               Sistem kecerdasan buatan terpadu untuk mengidentifikasi jenis sampah dari foto,
               memetakan sebaran titik hotspot secara geospasial, dan mengotomasi rekomendasi
               penanganan taktis demi menjaga kelestarian alam Pulau Dewata.
             </p>
 
             {/* CTA Buttons */}
-            <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-start sm:justify-center gap-3.5">
+            <div
+              data-aos="fade-up"
+              data-aos-delay="300"
+              className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-start sm:justify-center gap-3.5"
+            >
               <Link
                 href="/lapor"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#266210] hover:bg-[#347f18] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-black/20 transition-all border border-[#48bb22]/30"
@@ -84,7 +97,7 @@ export default function Home() {
       {/* 4 Core Features Section - Normal Background */}
       <section className="py-16 sm:py-24 bg-[#f5f7f4] border-b border-[#e2e7df]">
         <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
-          <div className="text-left sm:text-center max-w-2xl sm:mx-auto">
+          <div data-aos="fade-up" className="text-left sm:text-center max-w-2xl sm:mx-auto">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#266210]">
               Empat Fitur Inti Berbasis AI
             </h2>
@@ -95,7 +108,11 @@ export default function Home() {
 
           <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {/* Feature 1 */}
-            <div className="relative rounded-2xl border border-[#e2e7df] bg-white p-6 shadow-sm hover:border-[#266210] transition-colors">
+            <div
+              data-aos="fade-up"
+              data-aos-delay="100"
+              className="relative rounded-2xl border border-[#e2e7df] bg-white p-6 shadow-sm hover:border-[#266210] transition-colors"
+            >
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#eaf2e8] text-[#15370d]">
                 <Camera className="h-6 w-6 text-[#266210]" />
               </div>
@@ -112,7 +129,11 @@ export default function Home() {
             </div>
 
             {/* Feature 2 */}
-            <div className="relative rounded-2xl border border-[#e2e7df] bg-white p-6 shadow-sm hover:border-[#266210] transition-colors">
+            <div
+              data-aos="fade-up"
+              data-aos-delay="200"
+              className="relative rounded-2xl border border-[#e2e7df] bg-white p-6 shadow-sm hover:border-[#266210] transition-colors"
+            >
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#eaf2e8] text-[#15370d]">
                 <MapPin className="h-6 w-6 text-[#266210]" />
               </div>
@@ -129,7 +150,11 @@ export default function Home() {
             </div>
 
             {/* Feature 3 */}
-            <div className="relative rounded-2xl border border-[#e2e7df] bg-white p-6 shadow-sm hover:border-[#266210] transition-colors">
+            <div
+              data-aos="fade-up"
+              data-aos-delay="300"
+              className="relative rounded-2xl border border-[#e2e7df] bg-white p-6 shadow-sm hover:border-[#266210] transition-colors"
+            >
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#eaf2e8] text-[#15370d]">
                 <Sparkles className="h-6 w-6 text-[#266210]" />
               </div>
@@ -146,7 +171,11 @@ export default function Home() {
             </div>
 
             {/* Feature 4 */}
-            <div className="relative rounded-2xl border border-[#e2e7df] bg-white p-6 shadow-sm hover:border-[#266210] transition-colors">
+            <div
+              data-aos="fade-up"
+              data-aos-delay="400"
+              className="relative rounded-2xl border border-[#e2e7df] bg-white p-6 shadow-sm hover:border-[#266210] transition-colors"
+            >
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#eaf2e8] text-[#15370d]">
                 <BarChart3 className="h-6 w-6 text-[#266210]" />
               </div>
@@ -165,10 +194,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How it works Section */}
+      {/* How it works Section - Centered numbers on Mobile & Desktop */}
       <section className="py-16 sm:py-24 bg-white border-b border-[#e2e7df]">
         <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
-          <div className="text-left sm:text-center max-w-2xl sm:mx-auto">
+          <div data-aos="fade-up" className="text-center max-w-2xl mx-auto">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#266210]">
               Alur Kerja Terintegrasi
             </h2>
@@ -177,43 +206,63 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="flex flex-col items-start sm:items-center text-left sm:text-center">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#15370d] text-white font-bold text-sm shadow-sm">
+          <div className="mt-14 grid grid-cols-1 md:grid-cols-4 gap-10">
+            {/* Step 1 - Strictly Centered on mobile & desktop */}
+            <div
+              data-aos="zoom-in"
+              data-aos-delay="100"
+              className="flex flex-col items-center text-center"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#15370d] text-white font-bold text-base shadow-sm ring-4 ring-[#eaf2e8]">
                 1
               </div>
-              <h4 className="mt-4 font-bold text-[#15370d]">Warga Mengambil Foto</h4>
-              <p className="mt-2 text-xs sm:text-sm text-[#52604d]">
+              <h4 className="mt-5 font-bold text-[#15370d] text-base">Warga Mengambil Foto</h4>
+              <p className="mt-2 text-xs sm:text-sm text-[#52604d] max-w-xs">
                 Warga memotret timbulan sampah liar dan menetapkan titik koordinat lokasi di peta.
               </p>
             </div>
 
-            <div className="flex flex-col items-start sm:items-center text-left sm:text-center">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#15370d] text-white font-bold text-sm shadow-sm">
+            {/* Step 2 - Strictly Centered on mobile & desktop */}
+            <div
+              data-aos="zoom-in"
+              data-aos-delay="200"
+              className="flex flex-col items-center text-center"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#15370d] text-white font-bold text-base shadow-sm ring-4 ring-[#eaf2e8]">
                 2
               </div>
-              <h4 className="mt-4 font-bold text-[#15370d]">AI Menganalisis Citra</h4>
-              <p className="mt-2 text-xs sm:text-sm text-[#52604d]">
+              <h4 className="mt-5 font-bold text-[#15370d] text-base">AI Menganalisis Citra</h4>
+              <p className="mt-2 text-xs sm:text-sm text-[#52604d] max-w-xs">
                 Gemini Vision mengklasifikasi kategori sampah, confidence score, dan tingkat keparahan.
               </p>
             </div>
 
-            <div className="flex flex-col items-start sm:items-center text-left sm:text-center">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#15370d] text-white font-bold text-sm shadow-sm">
+            {/* Step 3 - Strictly Centered on mobile & desktop */}
+            <div
+              data-aos="zoom-in"
+              data-aos-delay="300"
+              className="flex flex-col items-center text-center"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#15370d] text-white font-bold text-base shadow-sm ring-4 ring-[#eaf2e8]">
                 3
               </div>
-              <h4 className="mt-4 font-bold text-[#15370d]">Rekomendasi Cerdas</h4>
-              <p className="mt-2 text-xs sm:text-sm text-[#52604d]">
+              <h4 className="mt-5 font-bold text-[#15370d] text-base">Rekomendasi Cerdas</h4>
+              <p className="mt-2 text-xs sm:text-sm text-[#52604d] max-w-xs">
                 AI merumuskan instruksi penanganan taktis, kebutuhan armada, dan instansi pelaksana.
               </p>
             </div>
 
-            <div className="flex flex-col items-start sm:items-center text-left sm:text-center">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#15370d] text-white font-bold text-sm shadow-sm">
+            {/* Step 4 - Strictly Centered on mobile & desktop */}
+            <div
+              data-aos="zoom-in"
+              data-aos-delay="400"
+              className="flex flex-col items-center text-center"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#15370d] text-white font-bold text-base shadow-sm ring-4 ring-[#eaf2e8]">
                 4
               </div>
-              <h4 className="mt-4 font-bold text-[#15370d]">Tindakan Cepat Berbasis Data</h4>
-              <p className="mt-2 text-xs sm:text-sm text-[#52604d]">
+              <h4 className="mt-5 font-bold text-[#15370d] text-base">Tindakan Cepat Berbasis Data</h4>
+              <p className="mt-2 text-xs sm:text-sm text-[#52604d] max-w-xs">
                 Petugas kebersihan membersihkan lokasi dan memverifikasi status laporan hingga tuntas.
               </p>
             </div>
@@ -221,11 +270,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Balanced CTA Banner: Proportional, Clean, Perfectly Aligned */}
-      <section className="bg-[#15370d] py-12 sm:py-16 text-white">
+      {/* Balanced CTA Banner */}
+      <section data-aos="fade-up" className="bg-[#15370d] py-12 sm:py-16 text-white">
         <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div className="max-w-2xl">
+            <div className="max-w-2xl text-left">
               <h3 className="text-xl sm:text-2xl font-bold tracking-tight">
                 Wujudkan Bali Bersih dari Sampah
               </h3>

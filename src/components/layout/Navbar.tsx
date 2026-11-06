@@ -19,14 +19,14 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#e2e7df] bg-[#f5f7f4]/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8 lg:px-12">
-        {/* Brand: Clean Typography BALIWASTE without clutter */}
+        {/* Brand: Clean Typography with Poppins */}
         <Link href="/" className="group flex items-center">
-          <span className="text-2xl font-extrabold tracking-tight text-[#15370d] group-hover:opacity-90 transition-opacity">
-            BALI<span className="text-[#266210]">WASTE</span>
+          <span className="text-2xl sm:text-[26px] font-black tracking-tight text-[#15370d] group-hover:opacity-90 transition-opacity">
+            BALI<span className="text-[#266210] font-extrabold">WASTE</span>
           </span>
         </Link>
 
-        {/* Desktop Navigation Links - Spacious Spacing */}
+        {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-9 text-sm font-semibold text-[#52604d]">
           {navLinks.map((link) => {
             const Icon = link.icon;
