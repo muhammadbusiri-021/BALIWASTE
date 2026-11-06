@@ -100,9 +100,11 @@ Output → Waste Hotspot Map + Recommendation + Dashboard
 
 8. **JANGAN MENGGUNAKAN EMOJI** pada antarmuka pengguna (UI, heading, kartu, tombol, badge). Gunakan icon vector (SVG / Lucide Icons) yang rapi, profesional, dan konsisten.
 
-9. **JANGAN GUNAKAN IKON TONG SAMPAH** pada identitas brand/logo (baik di navbar maupun footer). Brand harus tampil elegan dengan tipografi bersih (misal `BALIWASTE` dengan aksen warna brand).
+9. **JANGAN GUNAKAN IKON TONG SAMPAH ATAU SUBTITLE RAMAI** pada identitas brand/logo navbar. Logo navbar cukup tipografi bersih: `BALIWASTE` (perpaduan warna `#15370D` dan `#266210`). Hindari badge atau subtitle tambahan yang membuat header padat.
 
-10. **JANGAN** push langsung ke `main` untuk perubahan besar. Gunakan branch → PR → merge.
+10. **JANGAN MENAMPILKAN KREDENSIAL DEMO DI HALAMAN PUBLIK WEB**. Kredensial akun juri hanya disimpan di dokumen internal (`AGENTS.md` / form resmi panitia) dan TIDAK BOLEH dimunculkan di UI publik.
+
+11. **JANGAN** push langsung ke `main` untuk perubahan besar. Gunakan branch → PR → merge.
 
 ### 🟢 YANG HARUS DILAKUKAN
 
@@ -458,6 +460,15 @@ NEXT_PUBLIC_MAPBOX_TOKEN=
 ```
 
 > 🔴 **KRITIS:** Jangan pernah isi nilai asli di file ini. File `.env` yang berisi nilai asli TIDAK BOLEH di-commit.
+
+### 7.1 Kredensial Akun Demo Juri (INTERNAL — JANGAN DITAMPILKAN DI WEB)
+
+Gunakan kredensial ini untuk sesi penjurian, testing, dan submit form panitia:
+- **Email:** `juri@baliwaste.id`
+- **Password:** `juriBali2026!`
+- **Role:** `officer` (Dinas Kebersihan / Pengawas Lingkungan)
+- **Aturan:** JANGAN tampilkan teks akun & password ini pada halaman web publik! Hanya simpan di dokumen ini.
+
 
 ---
 
