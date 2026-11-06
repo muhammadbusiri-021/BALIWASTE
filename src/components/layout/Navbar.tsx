@@ -12,7 +12,7 @@ export function Navbar() {
   const pathname = usePathname();
 
   // Header transparan hanya di halaman beranda (Home) ketika belum di-scroll DAN menu mobile sedang tertutup.
-  // Saat menu mobile dibuka, header & dropdown otomatis berlatar putih solid/bersih agar warna tidak tabrakan dan terbaca jelas.
+  // Saat menu mobile dibuka, header menjadi putih solid terpadu tanpa penumpukan background.
   const isHomePage = pathname === "/";
   const isTransparent = isHomePage && !isScrolled && !mobileMenuOpen;
 
@@ -41,11 +41,16 @@ export function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ease-in-out ${
         isTransparent
-          ? "bg-transparent border-b border-transparent py-5"
-          : "bg-white/95 backdrop-blur-md border-b border-[#e2e7df] shadow-sm py-3.5"
+          ? "bg-transparent border-b border-transparent"
+          : "bg-white/95 backdrop-blur-md border-b border-[#e2e7df] shadow-sm"
       }`}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 sm:px-8 lg:px-12">
+      {/* Top Bar: Padding vertikal berada di dalam container ini, bukan di tag <header> agar tidak numpuk */}
+      <div
+        className={`mx-auto flex max-w-7xl items-center justify-between px-6 sm:px-8 lg:px-12 transition-all duration-300 ${
+          isTransparent ? "py-5" : "py-3.5"
+        }`}
+      >
         {/* Brand: Clean Typography with Poppins */}
         <Link href="/" className="group flex items-center">
           <span
@@ -140,10 +145,10 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer / Dropdown Menu (Kembali ke Bentuk Awal Dropdown dengan Warna Bersih & Serasi) */}
+      {/* Mobile Dropdown: Menyatu langsung dengan <header>, tanpa background ganda dan tanpa shadow berlapis */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-[#e2e7df] bg-white/98 backdrop-blur-md px-6 py-5 shadow-xl animate-in slide-in-from-top-2 duration-200">
-          <div className="flex flex-col space-y-3">
+        <div className="md:hidden border-t border-[#e2e7df] px-6 pt-3 pb-5">
+          <div className="flex flex-col space-y-2.5">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = pathname === link.href;
