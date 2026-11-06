@@ -25,24 +25,44 @@ BALIWASTE (Bali Waste Intelligence System) merupakan sistem informasi berbasis w
 
 ## 2. ARSITEKTUR SISTEM
 
+### Tech Stack (FINAL — Jangan Ganti Tanpa Konfirmasi Tim)
+
+| Layer | Teknologi |
+|---|---|
+| **Bahasa** | TypeScript (strict mode) |
+| **Framework** | Next.js (App Router) — fullstack, 1 folder |
+| **Styling** | Tailwind CSS |
+| **Database** | PostgreSQL + PostGIS (data geospasial) |
+| **ORM** | Prisma / Drizzle (sesuaikan dengan yang sudah ada) |
+| **AI Provider** | Gemini API (Vision + Text) |
+| **File Storage** | Cloudinary / Supabase Storage |
+| **Maps** | Leaflet.js + OpenStreetMap / Mapbox |
+| **Hosting** | Vercel (atau platform lain yang disepakati) |
+
+### Arsitektur Fullstack Next.js
+
 ```
 User (Masyarakat/Petugas)
   │
   ▼
-Frontend (Next.js + Tailwind CSS)
-  │
-  ▼
-Backend API (Node.js/Express ATAU Python/FastAPI)
-  │
-  ├──▶ Database (PostgreSQL + PostGIS / Supabase)
-  ├──▶ File Storage (Cloudinary / Supabase Storage)
-  ├──▶ AI: Image Classification (Gemini Vision API)
-  ├──▶ AI: Smart Recommendation (Gemini Text API / LLM)
-  └──▶ AI: Predictive Analytics (scikit-learn / custom model)
+Next.js App (TypeScript)
+  ├── Frontend: React (App Router + Server/Client Components)
+  ├── Backend:  API Routes (/app/api/...)
+  │     │
+  │     ├──▶ Database (PostgreSQL + PostGIS)
+  │     ├──▶ File Storage (Cloudinary / Supabase Storage)
+  │     ├──▶ AI: Image Classification (Gemini Vision API)
+  │     ├──▶ AI: Smart Recommendation (Gemini Text API / LLM)
+  │     └──▶ AI: Predictive Analytics (aggregasi data + AI)
   │
   ▼
 Output → Waste Hotspot Map + Recommendation + Dashboard
 ```
+
+> ⚠️ **PENTING:** Frontend dan Backend ada dalam SATU project Next.js.
+> - Halaman/UI → `src/app/(routes)/...`
+> - API endpoint → `src/app/api/...`
+> - JANGAN buat folder `backend/` terpisah.
 
 ### 4 Fitur Inti (Core Features) — WAJIB ADA
 
@@ -84,7 +104,7 @@ Output → Waste Hotspot Map + Recommendation + Dashboard
 
 1. **SELALU** baca dan pahami kode existing sebelum memodifikasi.
 2. **SELALU** pertahankan semua komentar dan dokumentasi yang tidak terkait dengan perubahan Anda.
-3. **SELALU** gunakan bahasa yang konsisten dengan codebase existing (jika backend sudah pakai TypeScript, lanjutkan pakai TypeScript).
+3. **SELALU** gunakan **TypeScript** secara konsisten. Jangan campur `.js` dan `.ts` — semua file harus `.ts` atau `.tsx`.
 4. **SELALU** test fitur setelah implementasi — pastikan tidak merusak fitur lain.
 5. **SELALU** update `README.md` jika menambah fitur, mengubah setup instructions, atau menambah dependency.
 6. **SELALU** tulis commit message yang deskriptif dalam format:
@@ -103,31 +123,50 @@ Output → Waste Hotspot Map + Recommendation + Dashboard
 
 ```
 BALIWASTE/
-├── frontend/               # Next.js app
-│   ├── src/
-│   │   ├── app/            # App router pages
-│   │   ├── components/     # Reusable UI components
-│   │   ├── lib/            # Utilities, helpers, API client
-│   │   ├── hooks/          # Custom React hooks
-│   │   └── types/          # TypeScript type definitions
-│   ├── public/             # Static assets
-│   ├── package.json
-│   └── .env.example
-├── backend/                # API server
-│   ├── src/
-│   │   ├── routes/         # API route handlers
-│   │   ├── controllers/    # Business logic
-│   │   ├── models/         # Database models/schema
-│   │   ├── services/       # AI services, external API calls
-│   │   ├── middleware/     # Auth, validation, error handling
-│   │   └── utils/          # Helper functions
-│   ├── package.json        # atau requirements.txt
-│   └── .env.example
-├── docs/                   # Dokumentasi tambahan
-├── AGENTS.md               # FILE INI — JANGAN HAPUS
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── (auth)/             # Route group: login, register
+│   │   ├── (dashboard)/        # Route group: dashboard, admin
+│   │   ├── (main)/             # Route group: landing, about
+│   │   ├── api/                # API Routes (backend)
+│   │   │   ├── auth/           # POST /api/auth/login, register
+│   │   │   ├── reports/        # CRUD /api/reports
+│   │   │   ├── ai/             # POST /api/ai/classify, recommend
+│   │   │   ├── hotspot/        # GET /api/hotspot
+│   │   │   └── dashboard/      # GET /api/dashboard/stats
+│   │   ├── layout.tsx          # Root layout
+│   │   ├── page.tsx            # Landing page
+│   │   └── globals.css         # Global styles + Tailwind
+│   ├── components/             # Reusable UI components
+│   │   ├── ui/                 # Primitif UI (Button, Card, Input, dll)
+│   │   ├── forms/              # Form components (ReportForm, LoginForm)
+│   │   ├── maps/               # Map components (HotspotMap, LocationPicker)
+│   │   └── charts/             # Chart/dashboard components
+│   ├── lib/                    # Utilities & shared logic
+│   │   ├── db.ts               # Database client (Prisma/Drizzle)
+│   │   ├── ai.ts               # Gemini API client & helpers
+│   │   ├── auth.ts             # Auth helpers (JWT, session)
+│   │   ├── storage.ts          # File upload helpers
+│   │   ├── validators.ts       # Zod schemas / validation
+│   │   └── utils.ts            # General utilities
+│   ├── hooks/                  # Custom React hooks
+│   ├── types/                  # TypeScript type definitions
+│   │   └── index.ts            # Shared types & interfaces
+│   └── constants/              # App constants, enums
+├── prisma/                     # Prisma schema & migrations (jika pakai Prisma)
+│   ├── schema.prisma
+│   └── migrations/
+├── public/                     # Static assets (images, icons)
+├── docs/                       # Dokumentasi tambahan
+├── AGENTS.md                   # FILE INI — JANGAN HAPUS
 ├── README.md
+├── .env.example                # Template env (TANPA secret)
+├── .env.local                  # Env lokal (JANGAN commit)
 ├── .gitignore
-└── .env.example
+├── next.config.ts
+├── tailwind.config.ts
+├── tsconfig.json
+└── package.json
 ```
 
 > Jika struktur folder sudah berbeda dari template di atas, **IKUTI STRUKTUR YANG SUDAH ADA**. Jangan reorganisasi tanpa konfirmasi.
@@ -139,22 +178,42 @@ BALIWASTE/
 | Komponen React | PascalCase | `WasteReportForm.tsx` |
 | Fungsi/variabel | camelCase | `getWasteReports()` |
 | File non-komponen | kebab-case | `waste-service.ts` |
+| API Route handler | `route.ts` di dalam folder | `src/app/api/reports/route.ts` |
+| Server Actions | camelCase, prefix `action` | `actionCreateReport()` |
 | Environment variable | UPPER_SNAKE_CASE | `GEMINI_API_KEY` |
-| Database table | snake_case | `waste_reports` |
+| Database table (Prisma) | PascalCase model, snake_case di DB | `model WasteReport` → `waste_reports` |
 | API endpoint | kebab-case, plural | `/api/waste-reports` |
+| TypeScript types/interfaces | PascalCase, prefix `I` opsional | `WasteReport`, `ApiResponse<T>` |
 | CSS class (Tailwind) | Gunakan utility class langsung | — |
 
 ### API Response Format (Konsisten)
 
+Gunakan generic type untuk response API:
+
+```typescript
+// src/types/index.ts
+type ApiResponse<T> = {
+  success: boolean;
+  data: T | null;
+  message: string;
+  error: {
+    code: string;
+    details: string;
+  } | null;
+};
+```
+
+Contoh sukses:
 ```json
 {
   "success": true,
-  "data": { ... },
+  "data": { "id": "...", "wasteType": "plastik" },
   "message": "Laporan berhasil disimpan",
   "error": null
 }
 ```
 
+Contoh error:
 ```json
 {
   "success": false,
@@ -162,10 +221,19 @@ BALIWASTE/
   "message": "Gagal menganalisis gambar",
   "error": {
     "code": "AI_ANALYSIS_FAILED",
-    "details": "..."
+    "details": "Gemini API returned 500"
   }
 }
 ```
+
+### Aturan TypeScript
+
+1. **Strict mode ON** — `"strict": true` di `tsconfig.json`.
+2. **JANGAN** pakai `any` kecuali benar-benar terpaksa. Gunakan `unknown` lalu narrowing.
+3. **SELALU** definisikan type/interface untuk: props komponen, API request/response, database model.
+4. **Gunakan Zod** untuk validasi runtime pada API routes.
+5. **Gunakan `"use client"`** hanya pada komponen yang memang butuh client-side interactivity. Default ke Server Component.
+6. **Data fetching** di server: gunakan Server Components atau `route.ts` API handlers. Hindari `useEffect` untuk fetch data awal.
 
 ---
 
@@ -227,40 +295,109 @@ BALIWASTE/
 > Jika schema sudah dibuat dan berbeda dari ini, **IKUTI YANG SUDAH ADA**.
 > Tabel di bawah hanya referensi untuk pembuatan awal.
 
-```sql
--- Users
-users (
-  id, name, email, password_hash, role, phone, 
-  created_at, updated_at
-)
--- role: 'citizen' | 'officer' | 'admin'
+### Prisma Schema (referensi)
 
--- Waste Reports
-waste_reports (
-  id, user_id, title, description, 
-  latitude, longitude, address,
-  image_url, 
-  ai_waste_type, ai_confidence, ai_raw_response,
-  severity, status,
-  created_at, updated_at
-)
--- status: 'reported' | 'verified' | 'in_progress' | 'resolved'
--- severity: 'low' | 'medium' | 'high' | 'critical'
+```prisma
+// prisma/schema.prisma
 
--- AI Recommendations
-ai_recommendations (
-  id, report_id,
-  priority, handling_method, resources_needed,
-  assigned_agency, ai_raw_response,
-  created_at
-)
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
--- Report Updates / Activity Log
-report_activities (
-  id, report_id, user_id,
-  action, notes, image_url,
-  created_at
-)
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  CITIZEN
+  OFFICER
+  ADMIN
+}
+
+enum ReportStatus {
+  REPORTED
+  VERIFIED
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(CITIZEN)
+  phone        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  reports    WasteReport[]
+  activities ReportActivity[]
+
+  @@map("users")
+}
+
+model WasteReport {
+  id          String       @id @default(cuid())
+  userId      String       @map("user_id")
+  title       String
+  description String?
+  latitude    Float
+  longitude   Float
+  address     String?
+  imageUrl    String       @map("image_url")
+  aiWasteType String?      @map("ai_waste_type")
+  aiConfidence Float?      @map("ai_confidence")
+  aiRawResponse Json?      @map("ai_raw_response")
+  severity    Severity     @default(LOW)
+  status      ReportStatus @default(REPORTED)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  user           User              @relation(fields: [userId], references: [id])
+  recommendation AiRecommendation?
+  activities     ReportActivity[]
+
+  @@map("waste_reports")
+}
+
+model AiRecommendation {
+  id              String   @id @default(cuid())
+  reportId        String   @unique @map("report_id")
+  priority        String
+  handlingMethod  String   @map("handling_method")
+  resourcesNeeded String?  @map("resources_needed")
+  assignedAgency  String?  @map("assigned_agency")
+  aiRawResponse   Json?    @map("ai_raw_response")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  report WasteReport @relation(fields: [reportId], references: [id])
+
+  @@map("ai_recommendations")
+}
+
+model ReportActivity {
+  id        String   @id @default(cuid())
+  reportId  String   @map("report_id")
+  userId    String   @map("user_id")
+  action    String
+  notes     String?
+  imageUrl  String?  @map("image_url")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  report WasteReport @relation(fields: [reportId], references: [id])
+  user   User        @relation(fields: [userId], references: [id])
+
+  @@map("report_activities")
+}
 ```
 
 ---
@@ -270,30 +407,31 @@ report_activities (
 File `.env.example` harus berisi (TANPA nilai asli):
 
 ```env
-# Database
+# Database (PostgreSQL)
 DATABASE_URL=
 
 # AI / Gemini API
 GEMINI_API_KEY=
 
-# File Storage
+# File Storage (pilih salah satu)
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 # ATAU
-SUPABASE_URL=
-SUPABASE_ANON_KEY=
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
 # Auth
 JWT_SECRET=
-JWT_EXPIRES_IN=
+# ATAU NextAuth
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=
 
 # App
 NODE_ENV=
 PORT=
-FRONTEND_URL=
 
-# Maps (opsional, jika pakai Mapbox)
+# Maps (opsional)
 NEXT_PUBLIC_MAPBOX_TOKEN=
 ```
 
@@ -350,14 +488,17 @@ APAKAH KAMU YAKIN dengan perubahan ini?
 ```bash
 # Clone repo
 git clone https://github.com/muhammadbusiri-021/BALIWASTE.git
+cd BALIWASTE
 
-# Install dependencies (sesuaikan dengan yang ada)
-cd frontend && npm install
-cd backend && npm install   # atau: pip install -r requirements.txt
+# Install dependencies
+npm install
+
+# Setup database (Prisma)
+npx prisma generate
+npx prisma db push        # atau: npx prisma migrate dev
 
 # Jalankan development server
-cd frontend && npm run dev
-cd backend && npm run dev   # atau: uvicorn main:app --reload
+npm run dev               # http://localhost:3000
 
 # Git workflow
 git checkout -b feat/nama-fitur
@@ -368,6 +509,10 @@ git push origin feat/nama-fitur
 # Tagging submission
 git tag v1.0-submission
 git push origin v1.0-submission
+
+# Build & check sebelum deploy
+npm run build
+npm run lint
 ```
 
 ---
