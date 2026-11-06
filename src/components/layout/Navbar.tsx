@@ -39,18 +39,14 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ease-in-out ${
+      className={`fixed top-0 left-0 right-0 z-50 w-full transition-colors duration-300 ease-in-out ${
         isTransparent
           ? "bg-transparent border-b border-transparent"
           : "bg-white/95 backdrop-blur-md border-b border-[#e2e7df] shadow-sm"
       }`}
     >
-      {/* Top Bar: Padding vertikal berada di dalam container ini, bukan di tag <header> agar tidak numpuk */}
-      <div
-        className={`mx-auto flex max-w-7xl items-center justify-between px-6 sm:px-8 lg:px-12 transition-all duration-300 ${
-          isTransparent ? "py-5" : "py-3.5"
-        }`}
-      >
+      {/* Top Bar: Tinggi & padding dibuat konsisten (py-3.5) agar tidak ada gerakan/shrink saat scroll */}
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 sm:px-8 lg:px-12 py-3.5">
         {/* Brand: Clean Typography with Poppins */}
         <Link href="/" className="group flex items-center">
           <span
@@ -82,7 +78,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-2 py-1 transition-all duration-200 ${
+                className={`flex items-center gap-2 py-1 transition-colors duration-200 ${
                   isActive
                     ? isTransparent
                       ? "text-[#65da3c] font-bold border-b-2 border-[#65da3c]"
@@ -113,7 +109,7 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-4">
           <Link
             href="/lapor"
-            className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-300 shadow-sm ${
+            className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors duration-300 shadow-sm ${
               isTransparent
                 ? "bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/25 shadow-black/20"
                 : "bg-[#266210] hover:bg-[#15370d] text-white shadow-emerald-900/10"
