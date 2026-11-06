@@ -7,12 +7,19 @@ import "aos/dist/aos.css";
 
 export function AOSProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    AOS.init({
-      duration: 750,
-      easing: "ease-out-cubic",
-      once: true,
-      offset: 40,
-    });
+    // Tunda inisialisasi sedikit agar proses hidrasi React 19 selesai terlebih dahulu
+    // Ini mencegah console error 'hydration mismatch'
+    const timer = setTimeout(() => {
+      AOS.init({
+        duration: 750,
+        easing: "ease-out-cubic",
+        once: true,
+        offset: 30,
+        delay: 50,
+      });
+    }, 150);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return <>{children}</>;

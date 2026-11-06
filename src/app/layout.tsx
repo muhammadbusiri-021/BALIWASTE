@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { AOSProvider } from "@/components/providers/AOSProvider";
+import { ScrollProgress } from "@/components/layout/ScrollProgress";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -27,9 +28,15 @@ export default function RootLayout({
     <html
       lang="id"
       className={`${poppins.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-[#f5f7f4] text-[#141b12] font-sans">
+      <body
+        className="min-h-full flex flex-col bg-[#f5f7f4] text-[#141b12] font-sans antialiased selection:bg-[#266210] selection:text-white"
+        suppressHydrationWarning
+      >
         <AOSProvider>
+          {/* Top Scroll Progress Indicator */}
+          <ScrollProgress />
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
