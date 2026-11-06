@@ -10,7 +10,7 @@ import {
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-[#f5f7f4] overflow-x-hidden">
+    <div className="bg-[#f5f7f4]">
       {/* Hero Section with Full-Width Video Background extending under Floating Navbar */}
       <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden pt-28 sm:pt-32 pb-20">
         {/* Ambient Video Background - 100% Width & Height */}
@@ -19,13 +19,13 @@ export default function Home() {
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover scale-105"
+          className="absolute inset-0 w-full h-full object-cover scale-105 pointer-events-none"
         >
           <source src="/videos/bali-hero.mp4" type="video/mp4" />
         </video>
 
         {/* Sophisticated Dark Emerald Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#15370d]/85 via-[#15370d]/75 to-[#15370d]/95 backdrop-blur-[1px]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#15370d]/85 via-[#15370d]/75 to-[#15370d]/95 backdrop-blur-[1px] pointer-events-none" />
 
         {/* Hero Content Container */}
         <div className="relative z-10 mx-auto max-w-5xl px-6 py-12 sm:px-8 lg:px-12 w-full">
@@ -290,13 +290,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Balanced CTA Banner */}
-      <section
-        data-aos="fade-up"
-        suppressHydrationWarning
-        className="bg-[#15370d] py-12 sm:py-16 text-white"
-      >
-        <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
+      {/* Balanced CTA Banner - No AOS on outer section to prevent scrollbar jumping */}
+      <section className="bg-[#15370d] py-12 sm:py-16 text-white">
+        <div
+          data-aos="fade-up"
+          suppressHydrationWarning
+          className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12"
+        >
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div className="max-w-2xl text-left">
               <h3 className="text-xl sm:text-2xl font-bold tracking-tight">
