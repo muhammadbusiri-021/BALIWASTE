@@ -4,7 +4,7 @@ import { users, wasteReports, aiRecommendations } from "./schema";
 import bcrypt from "bcryptjs";
 
 async function main() {
-  console.log("🌱 Menjalankan seeding data BALIWASTE...");
+  console.log("[SEED] Menjalankan seeding data awal BALIWASTE...");
 
   try {
     const passwordHash = await bcrypt.hash("juriBali2026!", 10);
@@ -127,7 +127,7 @@ async function main() {
       }
     }
 
-    console.log("✅ Seeding selesai! Data awal contoh Bali berhasil dimasukkan.");
+    console.log("[SEED] Selesai: Data awal contoh Bali berhasil dimasukkan.");
   } catch (error) {
     console.error("Gagal melakukan seeding:", error);
   }

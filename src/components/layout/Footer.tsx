@@ -1,49 +1,50 @@
 // src/components/layout/Footer.tsx
 import Link from "next/link";
-import { Trash2, Heart } from "lucide-react";
+import { ShieldCheck, ChevronRight } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="border-t border-gray-200 bg-gray-50 py-12 text-gray-600">
+    <footer className="border-t border-[#e2e7df] bg-[#edf1eb] py-12 text-[#52604d]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
-          {/* Brand Col */}
+          {/* Brand Col - Clean typography, no trash icon */}
           <div className="md:col-span-2">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white">
-                <Trash2 className="h-4 w-4" />
-              </div>
-              <span className="text-lg font-bold text-gray-900">
-                BALI<span className="text-emerald-600">WASTE</span>
+            <div className="flex flex-col">
+              <span className="text-xl font-extrabold tracking-tight text-[#15370d]">
+                BALI<span className="text-[#266210]">WASTE</span>
               </span>
+              <span className="text-xs text-[#52604d]">Bali Waste Intelligence System</span>
             </div>
-            <p className="mt-3 max-w-md text-sm text-gray-600 leading-relaxed">
-              Bali Waste Intelligence System — Platform pemantauan, pelaporan, analisis citra, dan
-              rekomendasi penanganan sampah berbasis Artificial Intelligence untuk menjaga kelestarian
-              alam Pulau Dewata.
+            <p className="mt-3 max-w-md text-sm text-[#52604d] leading-relaxed">
+              Sistem informasi berbasis web yang memanfaatkan Artificial Intelligence (AI) untuk
+              memantau dan mengelola permasalahan sampah di seluruh wilayah Bali melalui partisipasi
+              masyarakat, computer vision, pemetaan hotspot, dan rekomendasi penanganan otomatis.
             </p>
-            <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800 border border-emerald-200">
-              <span>Dibangun untuk</span>
-              <strong>Bali DigiFest 2026 AI Web Innovation Challenge</strong>
+            <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#eaf2e8] px-3 py-1.5 text-xs font-semibold text-[#15370d] border border-[#d6e4d2]">
+              <ShieldCheck className="h-4 w-4 text-[#266210]" />
+              <span>Bali DigiFest 2026 — AI Web Innovation Challenge</span>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-900">Fitur Sistem</h3>
-            <ul className="mt-3 space-y-2 text-sm">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#15370d]">Fitur Inti</h3>
+            <ul className="mt-3 space-y-2.5 text-sm">
               <li>
-                <Link href="/lapor" className="hover:text-emerald-600 transition-colors">
+                <Link href="/lapor" className="inline-flex items-center gap-1.5 hover:text-[#15370d] transition-colors">
+                  <ChevronRight className="h-3.5 w-3.5 text-[#266210]" />
                   Pelaporan Sampah (AI Vision)
                 </Link>
               </li>
               <li>
-                <Link href="/hotspot" className="hover:text-emerald-600 transition-colors">
+                <Link href="/hotspot" className="inline-flex items-center gap-1.5 hover:text-[#15370d] transition-colors">
+                  <ChevronRight className="h-3.5 w-3.5 text-[#266210]" />
                   Waste Hotspot Mapping
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard" className="hover:text-emerald-600 transition-colors">
+                <Link href="/dashboard" className="inline-flex items-center gap-1.5 hover:text-[#15370d] transition-colors">
+                  <ChevronRight className="h-3.5 w-3.5 text-[#266210]" />
                   Environmental Impact Dashboard
                 </Link>
               </li>
@@ -52,19 +53,19 @@ export function Footer() {
 
           {/* Guidelines & Compliance */}
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-900">Landasan & Kebijakan</h3>
-            <ul className="mt-3 space-y-2 text-xs text-gray-500">
-              <li>Pergub Bali No. 97/2018 (Pembatasan Sampah Plastik)</li>
-              <li>Pergub Bali No. 47/2019 (Pengelolaan Sampah Berbasis Sumber)</li>
-              <li>Visi & Misi Nangun Sat Kerthi Loka Bali</li>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#15370d]">Regulasi & Dasar Hukum</h3>
+            <ul className="mt-3 space-y-2 text-xs text-[#52604d]">
+              <li>Pergub Bali No. 97 Tahun 2018 tentang Pembatasan Timbulan Sampah Plastik Sekali Pakai</li>
+              <li>Pergub Bali No. 47 Tahun 2019 tentang Pengelolaan Sampah Berbasis Sumber di Desa/Kelurahan</li>
+              <li>Visi Pembangunan Bali: Nangun Sat Kerthi Loka Bali</li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-8 border-t border-gray-200 pt-6 flex flex-col md:flex-row items-center justify-between text-xs text-gray-500 gap-4">
-          <p>© 2026 Tim BALIWASTE. All rights reserved.</p>
-          <p className="flex items-center gap-1">
-            Made with <Heart className="h-3.5 w-3.5 text-rose-500 fill-rose-500" /> for Bali Smart Society
+        <div className="mt-10 border-t border-[#dce3d8] pt-6 flex flex-col md:flex-row items-center justify-between text-xs text-[#52604d] gap-4">
+          <p>© 2026 Tim BALIWASTE. Hak cipta dilindungi.</p>
+          <p className="font-medium text-[#15370d]">
+            Inovasi Digital untuk Bali Smart Society
           </p>
         </div>
       </div>

@@ -98,7 +98,11 @@ Output → Waste Hotspot Map + Recommendation + Dashboard
 
 7. **JANGAN** membuat mock/fake AI response untuk demo — AI harus benar-benar dipanggil.
 
-8. **JANGAN** push langsung ke `main` untuk perubahan besar. Gunakan branch → PR → merge.
+8. **JANGAN MENGGUNAKAN EMOJI** pada antarmuka pengguna (UI, heading, kartu, tombol, badge). Gunakan icon vector (SVG / Lucide Icons) yang rapi, profesional, dan konsisten.
+
+9. **JANGAN GUNAKAN IKON TONG SAMPAH** pada identitas brand/logo (baik di navbar maupun footer). Brand harus tampil elegan dengan tipografi bersih (misal `BALIWASTE` dengan aksen warna brand).
+
+10. **JANGAN** push langsung ke `main` untuk perubahan besar. Gunakan branch → PR → merge.
 
 ### 🟢 YANG HARUS DILAKUKAN
 
@@ -117,9 +121,27 @@ Output → Waste Hotspot Map + Recommendation + Dashboard
 
 ---
 
-## 4. KONVENSI KODE
+## 4. KONVENSI KODE & DESIGN SYSTEM
 
-### Struktur Folder (Ikuti Pola Ini)
+### 4.1 Design System & Color Palette (PENTING)
+
+Seluruh AI agent yang memodifikasi atau membuat UI **WAJIB** mengikuti panduan palet warna dan estetika berikut:
+
+| Token | Nilai Hex | Penggunaan Utama |
+|---|---|---|
+| **Hijau Gelap (Primary)** | `#15370D` | Brand identity, navbar text, heading penting, background gelap, banner utama |
+| **Hijau Agak Gelap (Secondary/Action)** | `#266210` | Tombol CTA (primer), active tabs, highlight, link penting, hover state |
+| **Background Halaman (Off-white)** | `#F5F7F4` | Background utama seluruh halaman (kontras diturunkan, hindari `#FFFFFF` murni yang silau) |
+| **Card / Container Surface** | `#FFFFFF` / `#EDF1EB` | Permukaan kartu komponen dengan border halus `#E2E7DF` |
+| **Teks Utama** | `#141B12` | Warna teks body & label agar terbaca dengan kontras seimbang |
+| **Teks Sekunder** | `#52604D` | Deskripsi pelengkap, metadata, timestamp |
+
+**Prinsip Desain UI:**
+1. **No Emojis in UI**: Dilarang memakai karakter emoji (misal 🗑️, 🚀, 🤖, 🌱, dll) pada teks tampilan publik. Selalu gunakan ikon SVG/Lucide (misal `<Camera />`, `<MapPin />`, `<Sparkles />`).
+2. **Clean Typography Brand**: Jangan menyematkan ikon sampah di pojok kiri atas navbar atau di footer brand. Gunakan tipografi rapi: `BALIWASTE` dengan perpaduan warna `#15370D` dan `#266210`.
+3. **Professional Gov-Tech / Smart Society Look**: Tampilan harus terlihat seperti sistem informasi resmi tingkat provinsi: bersih, terstruktur, tidak kekanak-kanakan, dan berorientasi data.
+
+### 4.2 Struktur Folder (Ikuti Pola Ini)
 
 ```
 BALIWASTE/
