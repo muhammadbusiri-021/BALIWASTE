@@ -26,6 +26,7 @@ import {
   Search,
   Crosshair,
   Edit2,
+  Maximize2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WASTE_CATEGORIES } from "@/constants";
@@ -164,6 +165,10 @@ export default function LaporPage() {
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageMimeType, setImageMimeType] = useState<string>("image/jpeg");
   const [cameraActive, setCameraActive] = useState(false);
+  const [cameraLoading, setCameraLoading] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [showFullPhoto, setShowFullPhoto] = useState(false);
   const [facingMode, setFacingMode] = useState<"user" | "environment">(
     "environment"
   );
@@ -219,39 +224,95 @@ export default function LaporPage() {
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
     setCameraActive(false);
+    setCameraLoading(false);
+    setCameraReady(false);
   }, []);
 
   const startCamera = useCallback(
     async (facing: "user" | "environment" = facingMode) => {
       stopCamera();
+      setCameraError(null);
+      setCameraActive(true);
+      setCameraLoading(true);
+      setCameraReady(false);
+      setFacingMode(facing);
+
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: facing,
-            width: { ideal: 1280 },
-            height: { ideal: 960 },
-          },
-          audio: false,
-        });
+        if (
+          typeof navigator === "undefined" ||
+          !navigator.mediaDevices ||
+          !navigator.mediaDevices.getUserMedia
+        ) {
+          throw new Error("Browser Anda tidak mendukung akses kamera langsung.");
+        }
+
+        let stream: MediaStream;
+        try {
+          // Coba dengan constraints ideal untuk kamera belakang / depan HP
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: facing },
+              width: { ideal: 1280 },
+              height: { ideal: 960 },
+            },
+            audio: false,
+          });
+        } catch {
+          // Fallback tanpa constraint facingMode untuk webcam laptop
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false,
+          });
+        }
+
         streamRef.current = stream;
+
+        // Pasangkan stream ke video element jika sudah siap
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          await videoRef.current.play();
+          try {
+            await videoRef.current.play();
+          } catch (e) {
+            console.warn("Autoplay was prevented:", e);
+          }
         }
-        setCameraActive(true);
-        setFacingMode(facing);
-      } catch {
-        setCameraActive(false);
-        // Fallback otomatis ke input capture kamera bawaan OS jika getUserMedia gagal
-        cameraInputRef.current?.click();
+      } catch (err: unknown) {
+        console.warn("Akses kamera langsung gagal:", err);
+        stopCamera();
+        const msg =
+          err instanceof Error
+            ? err.message
+            : "Kamera tidak dapat diakses.";
+        setCameraError(msg);
+
+        // Fallback otomatis ke input capture bawaan HP
+        if (cameraInputRef.current) {
+          cameraInputRef.current.click();
+        }
       }
     },
     [facingMode, stopCamera]
   );
 
+  // Pasangkan stream ke video element begitu element sudah ter-mount di DOM
+  useEffect(() => {
+    if (cameraActive && streamRef.current && videoRef.current) {
+      if (videoRef.current.srcObject !== streamRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+        videoRef.current.play().catch((err) => {
+          console.warn("Autoplay error in effect:", err);
+        });
+      }
+    }
+  }, [cameraActive]);
+
   // Fungsi pembuka kamera yang pintar: coba getUserMedia jika secure (HTTPS/localhost), fallback ke input file kamera di HP
   const handleOpenCameraClick = useCallback(() => {
+    setCameraError(null);
     const isSecure =
       typeof window !== "undefined" &&
       (window.isSecureContext ||
@@ -270,18 +331,30 @@ export default function LaporPage() {
   }, [startCamera]);
 
   const capturePhoto = useCallback(() => {
-    if (!videoRef.current || !canvasRef.current) return;
     const video = videoRef.current;
-    const canvas = canvasRef.current;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    if (!video) return;
+
+    const width = video.videoWidth;
+    const height = video.videoHeight;
+
+    if (!width || !height || video.readyState < 2) {
+      alert("Sensor kamera sedang menyiapkan gambar. Mohon tunggu 1 detik lalu ambil ulang.");
+      return;
+    }
+
+    const canvas = canvasRef.current || document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.drawImage(video, 0, 0);
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+
+    ctx.drawImage(video, 0, 0, width, height);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+
     setImagePreview(dataUrl);
     setImageBase64(dataUrl);
     setImageMimeType("image/jpeg");
+    setAiError(null);
     stopCamera();
   }, [stopCamera]);
 
@@ -317,10 +390,12 @@ export default function LaporPage() {
         const result = reader.result as string;
         setImagePreview(result);
         setImageBase64(result);
-        setImageMimeType(file.type);
+        setImageMimeType(file.type || "image/jpeg");
+        setAiError(null);
       };
       reader.readAsDataURL(file);
       stopCamera();
+      e.target.value = "";
     },
     [stopCamera]
   );
@@ -331,11 +406,14 @@ export default function LaporPage() {
     setClassification(null);
     setRecommendation(null);
     setAiError(null);
+    setCameraError(null);
     setShowRecommendation(false);
+    setShowFullPhoto(false);
     setStep("capture");
+    stopCamera();
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (cameraInputRef.current) cameraInputRef.current.value = "";
-  }, []);
+  }, [stopCamera]);
 
   /* ════════════════════════ AI ANALYSIS & MANUAL FALLBACK ════════════════════════ */
 
@@ -787,109 +865,194 @@ export default function LaporPage() {
         {step === "capture" && (
           <div className="space-y-5">
             {imagePreview ? (
-              <div className="relative overflow-hidden rounded-2xl border border-[#e2e7df] bg-white shadow-sm">
-                <img
-                  src={imagePreview}
-                  alt="Preview foto sampah"
-                  className="w-full max-h-[420px] object-contain bg-[#141b12]/5"
-                />
-                <button
-                  onClick={resetImage}
-                  className="absolute top-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[#52604d] shadow-md hover:bg-red-50 hover:text-red-600 transition-colors"
-                  title="Hapus foto"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+              <div className="space-y-3">
+                <div className="relative overflow-hidden rounded-2xl border border-[#e2e7df] bg-[#141b12]/5 shadow-sm">
+                  <img
+                    src={imagePreview}
+                    alt="Preview foto sampah"
+                    className="w-full max-h-[440px] object-contain mx-auto"
+                  />
+                  <div className="absolute top-3 right-3 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowFullPhoto(true)}
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[#15370d] shadow-md hover:bg-white transition-colors"
+                      title="Perbesar / Lihat Ukuran Penuh"
+                    >
+                      <Maximize2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={resetImage}
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[#52604d] shadow-md hover:bg-red-50 hover:text-red-600 transition-colors"
+                      title="Hapus / Foto Ulang"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                  <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                    <span>Foto Siap Dianalisis</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-[#52604d] px-1">
+                  <span>Pastikan timbunan sampah terlihat jelas dalam foto</span>
+                  <button
+                    type="button"
+                    onClick={resetImage}
+                    className="flex items-center gap-1.5 font-semibold text-[#266210] hover:underline"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    Ganti / Ambil Ulang Foto
+                  </button>
+                </div>
               </div>
             ) : cameraActive ? (
               <div className="relative overflow-hidden rounded-2xl border border-[#e2e7df] bg-black shadow-sm">
                 <video
-                  ref={videoRef}
+                  ref={(node) => {
+                    videoRef.current = node;
+                    if (
+                      node &&
+                      streamRef.current &&
+                      node.srcObject !== streamRef.current
+                    ) {
+                      node.srcObject = streamRef.current;
+                      node.play().catch(() => {});
+                    }
+                  }}
                   autoPlay
                   playsInline
                   muted
-                  className="w-full max-h-[420px] object-cover"
+                  onLoadedMetadata={() => {
+                    setCameraLoading(false);
+                    setCameraReady(true);
+                  }}
+                  onCanPlay={() => {
+                    setCameraLoading(false);
+                    setCameraReady(true);
+                  }}
+                  className="w-full max-h-[440px] min-h-[300px] object-cover bg-black"
                 />
-                <div className="absolute bottom-0 inset-x-0 flex items-center justify-center gap-5 p-5 bg-gradient-to-t from-black/60 to-transparent">
+
+                {/* Loading sensor kamera */}
+                {(!cameraReady || cameraLoading) && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/80 text-white z-10">
+                    <Loader2 className="h-8 w-8 animate-spin text-[#34d399]" />
+                    <p className="text-xs font-medium text-gray-200">
+                      Menghubungkan ke sensor kamera...
+                    </p>
+                  </div>
+                )}
+
+                {/* Shutter & camera controls */}
+                <div className="absolute bottom-0 inset-x-0 flex items-center justify-center gap-6 p-5 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-20">
                   <button
+                    type="button"
                     onClick={switchCamera}
-                    className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm hover:bg-white/30 transition-colors"
-                    title="Ganti kamera depan/belakang"
+                    disabled={!cameraReady || cameraLoading}
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm hover:bg-white/30 disabled:opacity-40 transition-colors"
+                    title="Ganti kamera depan / belakang"
                   >
                     <SwitchCamera className="h-5 w-5" />
                   </button>
                   <button
+                    type="button"
                     onClick={capturePhoto}
-                    className="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-lg ring-4 ring-white/30 hover:scale-105 active:scale-95 transition-transform"
-                    title="Ambil foto"
+                    disabled={!cameraReady || cameraLoading}
+                    className={cn(
+                      "flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-xl ring-4 ring-white/30 transition-all",
+                      cameraReady && !cameraLoading
+                        ? "hover:scale-105 active:scale-95 cursor-pointer"
+                        : "opacity-40 cursor-not-allowed"
+                    )}
+                    title="Ambil foto sampah"
                   >
-                    <div className="h-12 w-12 rounded-full bg-[#266210]" />
+                    <div className="h-12 w-12 rounded-full bg-[#266210] flex items-center justify-center">
+                      <Camera className="h-5 w-5 text-white" />
+                    </div>
                   </button>
                   <button
+                    type="button"
                     onClick={stopCamera}
-                    className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm hover:bg-red-500/60 transition-colors"
-                    title="Tutup kamera"
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm hover:bg-red-500/70 transition-colors"
+                    title="Batal / tutup kamera"
                   >
                     <X className="h-5 w-5" />
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={handleOpenCameraClick}
-                  className="group flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#c5cfbf] bg-white p-8 sm:p-10 hover:border-[#266210] hover:bg-[#edf1eb] transition-colors"
-                >
-                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#edf1eb] text-[#266210] group-hover:bg-[#266210] group-hover:text-white transition-colors">
-                    <Camera className="h-7 w-7" />
+              <div className="space-y-4">
+                {cameraError && (
+                  <div className="flex items-start gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-xs text-amber-900 shadow-sm animate-in fade-in duration-200">
+                    <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-600 flex-shrink-0" />
+                    <div>
+                      <p className="font-bold">Kamera langsung tidak dapat diakses</p>
+                      <p className="mt-0.5 text-amber-800 leading-relaxed">
+                        {cameraError}. Silakan gunakan opsi &quot;Unggah dari Galeri&quot; atau izinkan akses kamera di pengaturan browser Anda.
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm font-semibold text-[#15370d]">
-                      Buka Kamera
-                    </p>
-                    <p className="text-xs text-[#52604d] mt-0.5">
-                      Ambil foto langsung dari kamera HP / laptop
-                    </p>
-                  </div>
-                </button>
+                )}
 
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="group flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#c5cfbf] bg-white p-8 sm:p-10 hover:border-[#266210] hover:bg-[#edf1eb] transition-colors"
-                >
-                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#edf1eb] text-[#266210] group-hover:bg-[#266210] group-hover:text-white transition-colors">
-                    <Upload className="h-7 w-7" />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-semibold text-[#15370d]">
-                      Unggah dari Galeri
-                    </p>
-                    <p className="text-xs text-[#52604d] mt-0.5">
-                      JPG, PNG, WEBP — maks. 10 MB
-                    </p>
-                  </div>
-                </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={handleOpenCameraClick}
+                    className="group flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#c5cfbf] bg-white p-8 sm:p-10 hover:border-[#266210] hover:bg-[#edf1eb] transition-colors"
+                  >
+                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#edf1eb] text-[#266210] group-hover:bg-[#266210] group-hover:text-white transition-colors">
+                      <Camera className="h-7 w-7" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-[#15370d]">
+                        Buka Kamera
+                      </p>
+                      <p className="text-xs text-[#52604d] mt-0.5">
+                        Ambil foto langsung dari kamera HP / laptop
+                      </p>
+                    </div>
+                  </button>
 
-                {/* Input file biasa dari galeri */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileSelect}
-                />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="group flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#c5cfbf] bg-white p-8 sm:p-10 hover:border-[#266210] hover:bg-[#edf1eb] transition-colors"
+                  >
+                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#edf1eb] text-[#266210] group-hover:bg-[#266210] group-hover:text-white transition-colors">
+                      <Upload className="h-7 w-7" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-[#15370d]">
+                        Unggah dari Galeri
+                      </p>
+                      <p className="text-xs text-[#52604d] mt-0.5">
+                        JPG, PNG, WEBP — maks. 10 MB
+                      </p>
+                    </div>
+                  </button>
 
-                {/* Input file capture langsung ke kamera HP (Fallback jika WebRTC kamera browser diblokir) */}
-                <input
-                  ref={cameraInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  className="hidden"
-                  onChange={handleFileSelect}
-                />
+                  {/* Input file biasa dari galeri */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+
+                  {/* Input file capture langsung ke kamera HP (Fallback jika WebRTC kamera browser diblokir) */}
+                  <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+                </div>
               </div>
             )}
 
@@ -963,15 +1126,38 @@ export default function LaporPage() {
           <div className="space-y-6">
             {/* ─── AI Classification Card ─── */}
             <div className="overflow-hidden rounded-2xl border border-[#e2e7df] bg-white shadow-sm">
-              <div className="relative">
+              <div className="relative group bg-[#141b12]/5">
                 {imagePreview && (
                   <img
                     src={imagePreview}
                     alt="Foto sampah"
-                    className="w-full max-h-56 object-cover"
+                    className="w-full max-h-64 object-contain mx-auto"
                   />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/25 pointer-events-none" />
+
+                {/* Tombol aksi cepat: Lihat foto asli & Ganti foto */}
+                <div className="absolute top-3 right-3 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowFullPhoto(true)}
+                    className="flex items-center gap-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white px-2.5 py-1.5 text-xs font-medium backdrop-blur-sm shadow-md transition-colors"
+                    title="Perbesar / Lihat Foto Asli"
+                  >
+                    <Maximize2 className="h-3.5 w-3.5" />
+                    <span>Lihat Foto Asli</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetImage}
+                    className="flex items-center gap-1.5 rounded-lg bg-black/60 hover:bg-red-600/90 text-white px-2.5 py-1.5 text-xs font-medium backdrop-blur-sm shadow-md transition-colors"
+                    title="Ganti foto sampah"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    <span>Ganti Foto</span>
+                  </button>
+                </div>
+
                 <div className="absolute bottom-3 left-4 right-4 flex flex-wrap items-end gap-2">
                   <span
                     className={cn(
@@ -1526,6 +1712,33 @@ export default function LaporPage() {
           </div>
         )}
       </div>
+
+      {/* ─── Modal Foto Penuh / Zoom ─── */}
+      {showFullPhoto && imagePreview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setShowFullPhoto(false)}
+        >
+          <div
+            className="relative max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl bg-black"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={imagePreview}
+              alt="Foto sampah ukuran penuh"
+              className="max-h-[85vh] w-auto max-w-full object-contain mx-auto"
+            />
+            <button
+              type="button"
+              onClick={() => setShowFullPhoto(false)}
+              className="absolute top-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+              title="Tutup preview penuh"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <canvas ref={canvasRef} className="hidden" />
     </div>
