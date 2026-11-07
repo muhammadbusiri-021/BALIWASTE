@@ -46,7 +46,7 @@ Aturan confidence: nilai angka desimal antara 0.0 sampai 1.0. Jika di bawah 0.60
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash",
       contents: [
         {
           role: "user",
@@ -122,7 +122,8 @@ Aturan confidence: nilai angka desimal antara 0.0 sampai 1.0. Jika di bawah 0.60
     return parsed;
   } catch (error) {
     console.error("Gemini Vision classification failed:", error);
-    throw new Error("Gagal melakukan klasifikasi gambar sampah menggunakan AI.");
+    const detail = error instanceof Error ? error.message : "Terjadi kesalahan";
+    throw new Error(`Gagal melakukan klasifikasi gambar sampah: ${detail}`);
   }
 }
 
@@ -153,7 +154,7 @@ Berikan output JSON terstruktur.
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -206,6 +207,7 @@ Berikan output JSON terstruktur.
     return parsed;
   } catch (error) {
     console.error("Gemini recommendation failed:", error);
-    throw new Error("Gagal menghasilkan rekomendasi penanganan sampah berbasis AI.");
+    const detail = error instanceof Error ? error.message : "Terjadi kesalahan";
+    throw new Error(`Gagal menghasilkan rekomendasi penanganan sampah: ${detail}`);
   }
 }
