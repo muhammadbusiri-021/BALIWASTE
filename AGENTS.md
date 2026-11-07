@@ -109,12 +109,14 @@ Output → Waste Hotspot Map + Recommendation + Dashboard
 ### 🟢 YANG HARUS DILAKUKAN
 
 1. **SELALU jalankan `git pull origin main` (atau sinkronkan repo) sebelum mulai menulis kode atau menambahkan fitur baru.** Pastikan repository lokal selalu up-to-date dengan kode terbaru yang di-push oleh rekan tim di GitHub sebelum memodifikasi atau membuat file baru agar tidak terjadi konflik atau menimpa pekerjaan anggota tim lain.
-2. **SELALU** baca dan pahami kode existing sebelum memodifikasi.
-3. **SELALU** pertahankan semua komentar dan dokumentasi yang tidak terkait dengan perubahan Anda.
-4. **SELALU** gunakan **TypeScript** secara konsisten. Jangan campur `.js` dan `.ts` — semua file harus `.ts` atau `.tsx`.
-5. **SELALU** test fitur setelah implementasi — pastikan tidak merusak fitur lain.
-6. **SELALU** update `README.md` jika menambah fitur, mengubah setup instructions, atau menambah dependency.
-7. **SELALU** tulis commit message yang deskriptif dalam format:
+2. **SELALU baca Section 11 (Catatan Tim) dan riwayat `git log -n 5` sebelum mulai bekerja.** Pahami fitur apa yang baru saja diselesaikan, status sistem terkini, dan apa fitur berikutnya yang harus dikerjakan agar tidak terjadi tumpang tindih pekerjaan (duplicate work).
+3. **SELALU catat progres di Section 11 (Catatan Tim) setelah menyelesaikan fitur atau perbaikan penting.** Tuliskan apa yang selesai, perubahan konfigurasi (jika ada), dan apa langkah selanjutnya yang direkomendasikan.
+4. **SELALU** baca dan pahami kode existing sebelum memodifikasi.
+5. **SELALU** pertahankan semua komentar dan dokumentasi yang tidak terkait dengan perubahan Anda.
+6. **SELALU** gunakan **TypeScript** secara konsisten. Jangan campur `.js` dan `.ts` — semua file harus `.ts` atau `.tsx`.
+7. **SELALU** test fitur setelah implementasi — pastikan tidak merusak fitur lain.
+8. **SELALU** update `README.md` jika menambah fitur, mengubah setup instructions, atau menambah dependency.
+9. **SELALU** tulis commit message yang deskriptif dalam format:
    ```
    feat: tambah fitur analisis gambar sampah via Gemini Vision
    fix: perbaiki error upload foto di halaman laporan
@@ -558,9 +560,11 @@ npm run lint
 
 - **[2026-11-06]** Proyek diinisialisasi. AGENTS.md dibuat sebagai panduan AI agent.
 - **[2026-11-07]** Ditambahkan aturan wajib: AI Agent HARUS melakukan `git pull origin main` sebelum mulai menulis kode atau menambahkan fitur baru agar selalu sinkron dengan pekerjaan rekan tim.
+- **[2026-11-07]** **FITUR 1 SELESAI & TERUJI:** Halaman Pelaporan Sampah (`/lapor`) sudah tuntas 100%. Integrasi AI Vision (`gemini-3.5-flash`) aktif mendeteksi kategori sampah & estimasi tingkat keparahan, Leaflet Map untuk pemilihan titik koordinat Bali dengan navigasi zoom terkalibrasi, fallback input file & kamera mobile aman tanpa crash.
+- **[2026-11-07]** **TARGET BERIKUTNYA (PRIORITAS 🔴 KRITIS):** Pengerjaan **Fitur 2: Waste Hotspot Mapping (`/hotspot`)** — pembuatan peta interaktif sebaran titik sampah di Bali dengan geo-clustering, filter kategori & tingkat keparahan, serta popup/modal detail laporan sampah.
 
 ---
 
-**📌 Terakhir diperbarui:** 2026-11-07  
+**📌 Terakhir diperbarui:** 2026-11-07 (Fitur 1 Selesai - Persiapan Fitur 2 Waste Hotspot Mapping)  
 **📌 Dibuat oleh:** Tim BALIWASTE  
 **📌 File ini adalah bagian dari repositori dan TIDAK BOLEH dihapus.**
