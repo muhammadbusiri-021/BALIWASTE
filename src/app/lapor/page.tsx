@@ -16,19 +16,20 @@ import {
   SwitchCamera,
   ImageIcon,
   ShieldCheck,
-  Clock,
   Building2,
   Lightbulb,
-  Leaf,
   ChevronDown,
   ChevronUp,
   Info,
   Shield,
+  Search,
+  Crosshair,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { WASTE_CATEGORIES } from "@/constants";
+import { WASTE_CATEGORIES, BALI_REGIONS } from "@/constants";
 
-/* ────────────────────────────────── types (client-side mirrors) ────────────────────────────────── */
+/* ────────────────────────────────── types ────────────────────────────────── */
 
 type ClassificationResult = {
   category: string;
@@ -52,7 +53,58 @@ type RecommendationResult = {
 
 type Step = "capture" | "analyze" | "form" | "success";
 
-/* ──────────────────── label helpers ──────────────────── */
+/* ─────────────────────── preset koordinat wilayah bali ─────────────────────── */
+
+const BALI_REGION_PRESETS: Record<
+  string,
+  { lat: number; lng: number; defaultAddress: string }
+> = {
+  "Kota Denpasar": {
+    lat: -8.6705,
+    lng: 115.2126,
+    defaultAddress: "Kota Denpasar, Bali",
+  },
+  "Badung (Kuta / Seminyak / Canggu)": {
+    lat: -8.7185,
+    lng: 115.1686,
+    defaultAddress: "Kuta, Kabupaten Badung, Bali",
+  },
+  "Gianyar (Ubud / Sukawati)": {
+    lat: -8.5069,
+    lng: 115.2625,
+    defaultAddress: "Ubud, Kabupaten Gianyar, Bali",
+  },
+  "Tabanan (Bedugul / Tanah Lot)": {
+    lat: -8.5392,
+    lng: 115.1235,
+    defaultAddress: "Kabupaten Tabanan, Bali",
+  },
+  "Buleleng (Singaraja / Lovina)": {
+    lat: -8.112,
+    lng: 115.0882,
+    defaultAddress: "Singaraja, Kabupaten Buleleng, Bali",
+  },
+  "Karangasem (Amlapura)": {
+    lat: -8.4539,
+    lng: 115.612,
+    defaultAddress: "Kabupaten Karangasem, Bali",
+  },
+  "Klungkung (Semarapura / Nusa Penida)": {
+    lat: -8.5372,
+    lng: 115.4042,
+    defaultAddress: "Kabupaten Klungkung, Bali",
+  },
+  "Bangli (Kintamani)": {
+    lat: -8.4543,
+    lng: 115.3551,
+    defaultAddress: "Kabupaten Bangli, Bali",
+  },
+  "Jembrana (Negara)": {
+    lat: -8.3585,
+    lng: 114.6295,
+    defaultAddress: "Negara, Kabupaten Jembrana, Bali",
+  },
+};
 
 const SEVERITY_LABELS: Record<string, string> = {
   low: "Rendah",
@@ -118,8 +170,18 @@ export default function LaporPage() {
   const [address, setAddress] = useState("");
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
+
+  /* ─── location helper states ─── */
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [locationSuccessMsg, setLocationSuccessMsg] = useState<string | null>(
+    null
+  );
+  const [locationMode, setLocationMode] = useState<
+    "gps" | "preset" | "search" | "manual"
+  >("gps");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searching, setSearching] = useState(false);
 
   /* ─── submit ─── */
   const [submitting, setSubmitting] = useState(false);
@@ -188,10 +250,8 @@ export default function LaporPage() {
     startCamera(next);
   }, [facingMode, startCamera]);
 
-  /* cleanup camera on unmount */
   useEffect(() => {
     return () => {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
       }
@@ -225,8 +285,6 @@ export default function LaporPage() {
     [stopCamera]
   );
 
-  /* ════════════════════════ RESET IMAGE ════════════════════════ */
-
   const resetImage = useCallback(() => {
     setImagePreview(null);
     setImageBase64(null);
@@ -249,7 +307,6 @@ export default function LaporPage() {
     setRecommendation(null);
 
     try {
-      /* ── 1. Classify image via Gemini Vision ── */
       const classifyRes = await fetch("/api/ai/classify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -262,18 +319,18 @@ export default function LaporPage() {
 
       if (!classifyJson.success) {
         throw new Error(
-          classifyJson.error?.details || classifyJson.message || "Gagal menganalisis gambar"
+          classifyJson.error?.details ||
+            classifyJson.message ||
+            "Gagal menganalisis gambar"
         );
       }
 
       const cls: ClassificationResult = classifyJson.data;
       setClassification(cls);
 
-      /* auto-fill title from AI result */
       const label = getCategoryLabel(cls.category);
       setTitle(`Laporan Sampah ${label}`);
 
-      /* ── 2. Get recommendation (non-blocking, UX continues) ── */
       try {
         const recRes = await fetch("/api/ai/recommend", {
           method: "POST",
@@ -290,7 +347,7 @@ export default function LaporPage() {
           setRecommendation(recJson.data);
         }
       } catch {
-        /* recommendation is non-critical */
+        /* non-critical */
       }
 
       setStep("form");
@@ -304,45 +361,109 @@ export default function LaporPage() {
     }
   }, [imageBase64, imageMimeType, address, description]);
 
-  /* ════════════════════════ GEOLOCATION ════════════════════════ */
+  /* ════════════════════════ LOCATION HELPERS ════════════════════════ */
+
+  const reverseGeocode = useCallback(async (lat: number, lng: number) => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=id`
+      );
+      const data = await res.json();
+      if (data && data.display_name) {
+        setAddress(data.display_name);
+      }
+    } catch {
+      /* silent */
+    }
+  }, []);
 
   const getLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      setLocationError("Geolocation tidak didukung oleh browser Anda.");
+      setLocationError("Geolocation tidak didukung oleh browser ini.");
       return;
     }
     setLocationLoading(true);
     setLocationError(null);
+    setLocationSuccessMsg(null);
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setLatitude(pos.coords.latitude);
-        setLongitude(pos.coords.longitude);
+        const lat = Number(pos.coords.latitude.toFixed(6));
+        const lng = Number(pos.coords.longitude.toFixed(6));
+        setLatitude(lat);
+        setLongitude(lng);
         setLocationLoading(false);
-
-        /* reverse geocode via Nominatim (free, no API key) */
-        fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&accept-language=id`
-        )
-          .then((r) => r.json())
-          .then((data) => {
-            if (data.display_name) {
-              setAddress(data.display_name);
-            }
-          })
-          .catch(() => {
-            /* silent — address is optional */
-          });
+        setLocationSuccessMsg("Koordinat GPS berhasil diperoleh.");
+        reverseGeocode(lat, lng);
       },
       (err) => {
         setLocationLoading(false);
-        setLocationError(
+        const msg =
           err.code === 1
-            ? "Akses lokasi ditolak. Silakan izinkan akses lokasi pada browser."
-            : "Gagal mendapatkan lokasi saat ini."
-        );
+            ? "Izin akses lokasi ditolak. Silakan izinkan akses pada browser, atau gunakan pilihan wilayah / cari tempat di bawah."
+            : "Gagal mendapatkan lokasi GPS akurat. Anda dapat memilih wilayah Bali di bawah ini.";
+        setLocationError(msg);
       },
-      { enableHighAccuracy: true, timeout: 15000 }
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
+  }, [reverseGeocode]);
+
+  const selectRegionPreset = useCallback(
+    (regionName: string) => {
+      const preset = BALI_REGION_PRESETS[regionName];
+      if (preset) {
+        setLatitude(preset.lat);
+        setLongitude(preset.lng);
+        setAddress(preset.defaultAddress);
+        setLocationError(null);
+        setLocationSuccessMsg(`Lokasi diatur ke ${regionName}.`);
+      }
+    },
+    []
+  );
+
+  const searchLocation = useCallback(async () => {
+    if (!searchQuery.trim()) return;
+    setSearching(true);
+    setLocationError(null);
+    setLocationSuccessMsg(null);
+
+    try {
+      const q = encodeURIComponent(
+        searchQuery.toLowerCase().includes("bali")
+          ? searchQuery
+          : `${searchQuery}, Bali`
+      );
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1&accept-language=id`
+      );
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        const item = data[0];
+        const lat = parseFloat(item.lat);
+        const lng = parseFloat(item.lon);
+        setLatitude(lat);
+        setLongitude(lng);
+        setAddress(item.display_name);
+        setLocationSuccessMsg(`Lokasi ditemukan: ${item.display_name.split(",")[0]}`);
+      } else {
+        setLocationError(
+          "Lokasi tidak ditemukan. Coba gunakan nama tempat atau jalan yang lebih spesifik."
+        );
+      }
+    } catch {
+      setLocationError("Gagal mencari lokasi. Periksa koneksi internet Anda.");
+    } finally {
+      setSearching(false);
+    }
+  }, [searchQuery]);
+
+  const resetLocation = useCallback(() => {
+    setLatitude(null);
+    setLongitude(null);
+    setAddress("");
+    setLocationError(null);
+    setLocationSuccessMsg(null);
   }, []);
 
   /* ════════════════════════ SUBMIT REPORT ════════════════════════ */
@@ -355,7 +476,7 @@ export default function LaporPage() {
     }
     if (latitude === null || longitude === null) {
       setSubmitError(
-        "Lokasi belum ditentukan. Klik tombol deteksi lokasi terlebih dahulu."
+        "Lokasi belum ditentukan. Silakan pilih atau deteksi lokasi terlebih dahulu."
       );
       return;
     }
@@ -364,7 +485,7 @@ export default function LaporPage() {
     setSubmitError(null);
 
     try {
-      /* ── 1. Upload image to Cloudinary ── */
+      /* ── 1. Upload image (Cloudinary with local fallback) ── */
       const uploadRes = await fetch("/api/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -374,13 +495,15 @@ export default function LaporPage() {
 
       if (!uploadJson.success) {
         throw new Error(
-          uploadJson.error?.details || uploadJson.message || "Gagal mengunggah gambar"
+          uploadJson.error?.details ||
+            uploadJson.message ||
+            "Gagal mengunggah foto"
         );
       }
 
       const imageUrl: string = uploadJson.data.imageUrl;
 
-      /* ── 2. Submit report to database ── */
+      /* ── 2. Submit report ── */
       const reportRes = await fetch("/api/reports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -400,34 +523,31 @@ export default function LaporPage() {
 
       if (!reportJson.success) {
         throw new Error(
-          reportJson.error?.details || reportJson.message || "Gagal menyimpan laporan"
+          reportJson.error?.details ||
+            reportJson.message ||
+            "Gagal menyimpan data laporan"
         );
       }
 
       setStep("success");
     } catch (err: unknown) {
       const msg =
-        err instanceof Error ? err.message : "Gagal mengirim laporan";
+        err instanceof Error ? err.message : "Gagal mengirim laporan sampah";
       setSubmitError(msg);
     } finally {
       setSubmitting(false);
     }
   }, [imageBase64, classification, title, description, address, latitude, longitude]);
 
-  /* ════════════════════════ NEW REPORT ════════════════════════ */
-
   const startNewReport = useCallback(() => {
     resetImage();
     setTitle("");
     setDescription("");
-    setAddress("");
-    setLatitude(null);
-    setLongitude(null);
-    setLocationError(null);
+    resetLocation();
     setSubmitError(null);
     setShowRecommendation(false);
     setStep("capture");
-  }, [resetImage]);
+  }, [resetImage, resetLocation]);
 
   /* ═══════════════════════════════════════════════════════════════
      RENDER
@@ -514,7 +634,6 @@ export default function LaporPage() {
         {step === "capture" && (
           <div className="space-y-5">
             {imagePreview ? (
-              /* ── Preview captured / uploaded image ── */
               <div className="relative overflow-hidden rounded-2xl border border-[#e2e7df] bg-white shadow-sm">
                 <img
                   src={imagePreview}
@@ -530,7 +649,6 @@ export default function LaporPage() {
                 </button>
               </div>
             ) : cameraActive ? (
-              /* ── Live camera feed ── */
               <div className="relative overflow-hidden rounded-2xl border border-[#e2e7df] bg-black shadow-sm">
                 <video
                   ref={videoRef}
@@ -539,7 +657,6 @@ export default function LaporPage() {
                   muted
                   className="w-full max-h-[420px] object-cover"
                 />
-                {/* Camera controls overlay */}
                 <div className="absolute bottom-0 inset-x-0 flex items-center justify-center gap-5 p-5 bg-gradient-to-t from-black/60 to-transparent">
                   <button
                     onClick={switchCamera}
@@ -565,9 +682,7 @@ export default function LaporPage() {
                 </div>
               </div>
             ) : (
-              /* ── Upload / Camera selection cards ── */
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Camera card */}
                 <button
                   onClick={() => startCamera()}
                   className="group flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#c5cfbf] bg-white p-8 sm:p-10 hover:border-[#266210] hover:bg-[#edf1eb] transition-colors"
@@ -585,7 +700,6 @@ export default function LaporPage() {
                   </div>
                 </button>
 
-                {/* File upload card */}
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   className="group flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#c5cfbf] bg-white p-8 sm:p-10 hover:border-[#266210] hover:bg-[#edf1eb] transition-colors"
@@ -613,7 +727,6 @@ export default function LaporPage() {
               </div>
             )}
 
-            {/* AI Error feedback */}
             {aiError && (
               <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
                 <AlertTriangle className="h-5 w-5 mt-0.5 flex-shrink-0" />
@@ -624,7 +737,6 @@ export default function LaporPage() {
               </div>
             )}
 
-            {/* CTA: Analyze with AI */}
             {imagePreview && (
               <button
                 onClick={runAnalysis}
@@ -638,7 +750,7 @@ export default function LaporPage() {
           </div>
         )}
 
-        {/* ═══════════════ STEP 2: ANALYZING (loading) ═══════════════ */}
+        {/* ═══════════════ STEP 2: ANALYZING ═══════════════ */}
         {step === "analyze" && analyzing && (
           <div className="flex flex-col items-center justify-center gap-5 py-20 text-center">
             <div className="relative flex h-20 w-20 items-center justify-center">
@@ -662,7 +774,6 @@ export default function LaporPage() {
           <div className="space-y-6">
             {/* ─── AI Classification Card ─── */}
             <div className="overflow-hidden rounded-2xl border border-[#e2e7df] bg-white shadow-sm">
-              {/* photo + overlay badges */}
               <div className="relative">
                 {imagePreview && (
                   <img
@@ -698,7 +809,6 @@ export default function LaporPage() {
               </div>
 
               <div className="p-5 space-y-4">
-                {/* Confidence bar */}
                 <div>
                   <div className="flex items-center justify-between text-xs mb-1.5">
                     <span className="font-semibold text-[#15370d]">
@@ -731,7 +841,6 @@ export default function LaporPage() {
                   )}
                 </div>
 
-                {/* Detected Items */}
                 {classification.detectedItems.length > 0 && (
                   <div>
                     <p className="text-xs font-semibold text-[#15370d] mb-1.5">
@@ -750,7 +859,6 @@ export default function LaporPage() {
                   </div>
                 )}
 
-                {/* Volume & Notes */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   {classification.estimatedVolume && (
                     <div className="rounded-lg bg-[#f5f7f4] border border-[#e2e7df] p-3">
@@ -772,7 +880,6 @@ export default function LaporPage() {
                   </div>
                 </div>
 
-                {/* Re-take photo */}
                 <button
                   onClick={resetImage}
                   className="flex items-center gap-1.5 text-xs font-medium text-[#52604d] hover:text-[#15370d] transition-colors"
@@ -783,7 +890,7 @@ export default function LaporPage() {
               </div>
             </div>
 
-            {/* ─── AI Recommendation (collapsible accordion) ─── */}
+            {/* ─── AI Recommendation ─── */}
             {recommendation && (
               <div className="overflow-hidden rounded-2xl border border-[#e2e7df] bg-white shadow-sm">
                 <button
@@ -806,7 +913,6 @@ export default function LaporPage() {
                 {showRecommendation && (
                   <div className="border-t border-[#e2e7df] p-5 space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {/* Priority */}
                       <div className="rounded-lg bg-[#f5f7f4] border border-[#e2e7df] p-3">
                         <div className="flex items-center gap-1.5 text-xs font-semibold text-[#15370d] mb-1">
                           <ShieldCheck className="h-3.5 w-3.5 text-[#266210]" />
@@ -816,7 +922,6 @@ export default function LaporPage() {
                           {recommendation.priority}
                         </p>
                       </div>
-                      {/* Assigned Agency */}
                       <div className="rounded-lg bg-[#f5f7f4] border border-[#e2e7df] p-3">
                         <div className="flex items-center gap-1.5 text-xs font-semibold text-[#15370d] mb-1">
                           <Building2 className="h-3.5 w-3.5 text-[#266210]" />
@@ -826,7 +931,6 @@ export default function LaporPage() {
                           {recommendation.assignedAgency}
                         </p>
                       </div>
-                      {/* Resources */}
                       <div className="rounded-lg bg-[#f5f7f4] border border-[#e2e7df] p-3 sm:col-span-2">
                         <div className="flex items-center gap-1.5 text-xs font-semibold text-[#15370d] mb-1">
                           <Info className="h-3.5 w-3.5 text-[#266210]" />
@@ -838,7 +942,6 @@ export default function LaporPage() {
                       </div>
                     </div>
 
-                    {/* Handling Method */}
                     <div className="rounded-lg bg-[#f5f7f4] border border-[#e2e7df] p-3">
                       <div className="flex items-center gap-1.5 text-xs font-semibold text-[#15370d] mb-1">
                         <Lightbulb className="h-3.5 w-3.5 text-[#266210]" />
@@ -849,7 +952,6 @@ export default function LaporPage() {
                       </p>
                     </div>
 
-                    {/* Safety Notes */}
                     {recommendation.safetyNotes && (
                       <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
                         <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-900 mb-1">
@@ -862,7 +964,6 @@ export default function LaporPage() {
                       </div>
                     )}
 
-                    {/* Action Steps */}
                     {recommendation.actionSteps &&
                       recommendation.actionSteps.length > 0 && (
                         <div>
@@ -871,7 +972,7 @@ export default function LaporPage() {
                             Langkah Penanganan
                           </p>
                           <ol className="space-y-1.5">
-                            {recommendation.actionSteps.map((step, i) => (
+                            {recommendation.actionSteps.map((s, i) => (
                               <li
                                 key={i}
                                 className="flex items-start gap-2 text-xs text-[#52604d]"
@@ -879,7 +980,7 @@ export default function LaporPage() {
                                 <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#edf1eb] text-[10px] font-bold text-[#266210]">
                                   {i + 1}
                                 </span>
-                                <span className="leading-relaxed">{step}</span>
+                                <span className="leading-relaxed">{s}</span>
                               </li>
                             ))}
                           </ol>
@@ -924,83 +1025,392 @@ export default function LaporPage() {
                 />
               </div>
 
-              {/* Location */}
-              <div>
-                <label className="block text-xs font-semibold text-[#15370d] mb-1.5">
-                  Lokasi <span className="text-red-500">*</span>
-                </label>
+              {/* ─── UPGRADED LOCATION SECTION ─── */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold text-[#15370d]">
+                    Lokasi Penemuan Sampah <span className="text-red-500">*</span>
+                  </label>
+                  {latitude !== null && longitude !== null && (
+                    <button
+                      type="button"
+                      onClick={resetLocation}
+                      className="text-[11px] font-medium text-red-600 hover:underline"
+                    >
+                      Hapus / Reset Lokasi
+                    </button>
+                  )}
+                </div>
 
+                {/* Display Current Selected Location Status */}
                 {latitude !== null && longitude !== null ? (
-                  <div className="rounded-xl border border-[#e2e7df] bg-[#f5f7f4] p-3 space-y-2">
-                    <div className="flex items-center gap-2 text-xs text-[#266210] font-semibold">
-                      <CheckCircle2 className="h-4 w-4" />
-                      Lokasi berhasil ditentukan
+                  <div className="rounded-xl border border-[#e2e7df] bg-[#f5f7f4] p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs text-[#266210] font-semibold">
+                        <CheckCircle2 className="h-4 w-4" />
+                        Lokasi Terpilih
+                      </div>
+                      <a
+                        href={`https://www.google.com/maps?q=${latitude},${longitude}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-medium text-[#266210] hover:underline"
+                      >
+                        Buka di Google Maps
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-[#52604d]">
+
+                    <div className="grid grid-cols-2 gap-2 text-xs text-[#52604d] bg-white p-2.5 rounded-lg border border-[#e2e7df]">
                       <div>
-                        <span className="font-medium">Lat:</span>{" "}
+                        <span className="font-semibold text-[#15370d]">
+                          Latitude:
+                        </span>{" "}
                         {latitude.toFixed(6)}
                       </div>
                       <div>
-                        <span className="font-medium">Lng:</span>{" "}
+                        <span className="font-semibold text-[#15370d]">
+                          Longitude:
+                        </span>{" "}
                         {longitude.toFixed(6)}
                       </div>
                     </div>
+
                     {address && (
-                      <p className="text-xs text-[#52604d] leading-relaxed border-t border-[#e2e7df] pt-2">
+                      <p className="text-xs text-[#52604d] leading-relaxed">
+                        <span className="font-semibold text-[#15370d]">
+                          Alamat:
+                        </span>{" "}
                         {address}
                       </p>
                     )}
-                    <button
-                      onClick={getLocation}
-                      disabled={locationLoading}
-                      className="flex items-center gap-1.5 text-xs font-medium text-[#52604d] hover:text-[#15370d] transition-colors"
-                    >
-                      <RotateCcw className="h-3 w-3" />
-                      Perbarui lokasi
-                    </button>
+
+                    {/* Interactive OpenStreetMap preview iframe */}
+                    <div className="overflow-hidden rounded-lg border border-[#e2e7df] shadow-inner h-44 w-full">
+                      <iframe
+                        title="Peta Lokasi Sampah"
+                        width="100%"
+                        height="100%"
+                        className="border-0"
+                        loading="lazy"
+                        src={`https://www.openstreetmap.org/export/embed.html?bbox=${
+                          longitude - 0.015
+                        }%2C${latitude - 0.015}%2C${longitude + 0.015}%2C${
+                          latitude + 0.015
+                        }&layer=mapnik&marker=${latitude}%2C${longitude}`}
+                      />
+                    </div>
+
+                    {/* Action buttons when location is set */}
+                    <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-[#e2e7df]">
+                      <button
+                        type="button"
+                        onClick={getLocation}
+                        disabled={locationLoading}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#d1d8cd] bg-white px-3 py-1.5 text-xs font-semibold text-[#15370d] hover:bg-[#edf1eb] transition-colors"
+                      >
+                        {locationLoading ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <RotateCcw className="h-3.5 w-3.5" />
+                        )}
+                        {locationLoading
+                          ? "Mendeteksi ulang GPS..."
+                          : "Perbarui via GPS"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setLocationMode(
+                            locationMode === "preset" ? "gps" : "preset"
+                          )
+                        }
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#d1d8cd] bg-white px-3 py-1.5 text-xs font-semibold text-[#52604d] hover:bg-[#edf1eb] transition-colors"
+                      >
+                        Pilih Wilayah Lain
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setLocationMode(
+                            locationMode === "search" ? "gps" : "search"
+                          )
+                        }
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#d1d8cd] bg-white px-3 py-1.5 text-xs font-semibold text-[#52604d] hover:bg-[#edf1eb] transition-colors"
+                      >
+                        Cari Tempat Lain
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    <button
-                      onClick={getLocation}
-                      disabled={locationLoading}
-                      className="w-full flex items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-[#c5cfbf] bg-white py-4 text-sm font-medium text-[#52604d] hover:border-[#266210] hover:text-[#15370d] disabled:opacity-60 transition-colors"
-                    >
-                      {locationLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <MapPin className="h-4 w-4" />
-                      )}
-                      {locationLoading
-                        ? "Mendeteksi lokasi..."
-                        : "Deteksi Lokasi Saat Ini"}
-                    </button>
-                    {locationError && (
-                      <p className="flex items-center gap-1.5 text-xs text-red-600">
-                        <AlertTriangle className="h-3.5 w-3.5" />
-                        {locationError}
-                      </p>
+                  /* When no location is selected yet */
+                  <div className="space-y-3">
+                    {/* Method Selector Tabs */}
+                    <div className="grid grid-cols-3 gap-1 rounded-xl bg-[#edf1eb] p-1 text-xs font-semibold">
+                      <button
+                        type="button"
+                        onClick={() => setLocationMode("gps")}
+                        className={cn(
+                          "rounded-lg py-2 transition-colors",
+                          locationMode === "gps"
+                            ? "bg-white text-[#15370d] shadow-sm"
+                            : "text-[#52604d] hover:text-[#15370d]"
+                        )}
+                      >
+                        GPS Otomatis
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLocationMode("preset")}
+                        className={cn(
+                          "rounded-lg py-2 transition-colors",
+                          locationMode === "preset"
+                            ? "bg-white text-[#15370d] shadow-sm"
+                            : "text-[#52604d] hover:text-[#15370d]"
+                        )}
+                      >
+                        Pilih Wilayah Bali
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLocationMode("search")}
+                        className={cn(
+                          "rounded-lg py-2 transition-colors",
+                          locationMode === "search"
+                            ? "bg-white text-[#15370d] shadow-sm"
+                            : "text-[#52604d] hover:text-[#15370d]"
+                        )}
+                      >
+                        Cari Alamat / Tempat
+                      </button>
+                    </div>
+
+                    {/* Mode 1: GPS Browser */}
+                    {locationMode === "gps" && (
+                      <div className="space-y-2">
+                        <button
+                          type="button"
+                          onClick={getLocation}
+                          disabled={locationLoading}
+                          className="w-full flex items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-[#c5cfbf] bg-white py-4 text-sm font-semibold text-[#15370d] hover:border-[#266210] hover:bg-[#edf1eb] disabled:opacity-60 transition-colors shadow-sm"
+                        >
+                          {locationLoading ? (
+                            <Loader2 className="h-5 w-5 animate-spin text-[#266210]" />
+                          ) : (
+                            <Crosshair className="h-5 w-5 text-[#266210]" />
+                          )}
+                          {locationLoading
+                            ? "Mendeteksi posisi GPS..."
+                            : "Deteksi Lokasi GPS Saat Ini"}
+                        </button>
+                        <p className="text-[11px] text-[#52604d] text-center">
+                          Catatan: Pada laptop/PC, posisi browser mengacu pada
+                          jaringan WiFi/ISP. Jika tidak sesuai, silakan gunakan tab
+                          <strong> &quot;Pilih Wilayah Bali&quot;</strong> atau
+                          <strong> &quot;Cari Alamat&quot;</strong>.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Mode 2: Quick Bali Region Presets */}
+                    {locationMode === "preset" && (
+                      <div className="rounded-xl border border-[#e2e7df] bg-white p-4 space-y-2.5">
+                        <p className="text-xs font-semibold text-[#15370d]">
+                          Pilih Kabupaten / Kota Laporan di Bali:
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {Object.keys(BALI_REGION_PRESETS).map((reg) => (
+                            <button
+                              key={reg}
+                              type="button"
+                              onClick={() => selectRegionPreset(reg)}
+                              className="flex items-center gap-2 rounded-lg border border-[#e2e7df] bg-[#f5f7f4] px-3 py-2 text-left text-xs font-medium text-[#141b12] hover:border-[#266210] hover:bg-[#edf1eb] transition-colors"
+                            >
+                              <MapPin className="h-3.5 w-3.5 text-[#266210] flex-shrink-0" />
+                              <span className="truncate">{reg}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Mode 3: Search Location in Bali */}
+                    {locationMode === "search" && (
+                      <div className="rounded-xl border border-[#e2e7df] bg-white p-4 space-y-3">
+                        <p className="text-xs font-semibold text-[#15370d]">
+                          Ketik nama tempat, pantai, pasar, atau jalan di Bali:
+                        </p>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                searchLocation();
+                              }
+                            }}
+                            placeholder="Contoh: Pantai Kuta, Ubud Monkey Forest, Sanur..."
+                            className="flex-1 rounded-xl border border-[#d1d8cd] bg-[#f5f7f4] px-3.5 py-2.5 text-xs text-[#141b12] placeholder:text-[#9ca896] focus:border-[#266210] outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={searchLocation}
+                            disabled={searching}
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-[#266210] hover:bg-[#347f18] px-4 py-2.5 text-xs font-semibold text-white disabled:opacity-60 transition-colors shadow-sm"
+                          >
+                            {searching ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Search className="h-4 w-4" />
+                            )}
+                            Cari
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}
+
+                {/* Sub-panels for manual override if location is already set */}
+                {latitude !== null && longitude !== null && locationMode === "preset" && (
+                  <div className="rounded-xl border border-[#e2e7df] bg-white p-4 space-y-2">
+                    <p className="text-xs font-semibold text-[#15370d]">
+                      Pilih Wilayah Bali Lainnya:
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {Object.keys(BALI_REGION_PRESETS).map((reg) => (
+                        <button
+                          key={reg}
+                          type="button"
+                          onClick={() => selectRegionPreset(reg)}
+                          className="flex items-center gap-2 rounded-lg border border-[#e2e7df] bg-[#f5f7f4] px-3 py-2 text-left text-xs font-medium text-[#141b12] hover:border-[#266210] hover:bg-[#edf1eb] transition-colors"
+                        >
+                          <MapPin className="h-3.5 w-3.5 text-[#266210] flex-shrink-0" />
+                          <span className="truncate">{reg}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {latitude !== null && longitude !== null && locationMode === "search" && (
+                  <div className="rounded-xl border border-[#e2e7df] bg-white p-4 space-y-3">
+                    <p className="text-xs font-semibold text-[#15370d]">
+                      Cari Tempat Baru di Bali:
+                    </p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            searchLocation();
+                          }
+                        }}
+                        placeholder="Contoh: Pantai Sanur, Pasar Badung..."
+                        className="flex-1 rounded-xl border border-[#d1d8cd] bg-[#f5f7f4] px-3.5 py-2.5 text-xs text-[#141b12] placeholder:text-[#9ca896] focus:border-[#266210] outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={searchLocation}
+                        disabled={searching}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#266210] hover:bg-[#347f18] px-4 py-2.5 text-xs font-semibold text-white disabled:opacity-60 transition-colors"
+                      >
+                        {searching ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Search className="h-4 w-4" />
+                        )}
+                        Cari
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Feedback notifications */}
+                {locationSuccessMsg && (
+                  <p className="flex items-center gap-1.5 text-xs text-[#266210]">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    {locationSuccessMsg}
+                  </p>
+                )}
+
+                {locationError && (
+                  <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800">
+                    <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <p>{locationError}</p>
+                  </div>
+                )}
+
+                {/* Manual coordinate toggle */}
+                <details className="text-xs text-[#52604d]">
+                  <summary className="cursor-pointer font-semibold text-[#15370d] hover:underline">
+                    Input / Edit Angka Koordinat Manual
+                  </summary>
+                  <div className="mt-2 grid grid-cols-2 gap-3 p-3 bg-[#f5f7f4] rounded-xl border border-[#e2e7df]">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#15370d] mb-1">
+                        Latitude
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        value={latitude ?? ""}
+                        onChange={(e) =>
+                          setLatitude(
+                            e.target.value === ""
+                              ? null
+                              : parseFloat(e.target.value)
+                          )
+                        }
+                        placeholder="-8.4095"
+                        className="w-full rounded-lg border border-[#d1d8cd] bg-white px-3 py-2 text-xs text-[#141b12] outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#15370d] mb-1">
+                        Longitude
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        value={longitude ?? ""}
+                        onChange={(e) =>
+                          setLongitude(
+                            e.target.value === ""
+                              ? null
+                              : parseFloat(e.target.value)
+                          )
+                        }
+                        placeholder="115.1889"
+                        className="w-full rounded-lg border border-[#d1d8cd] bg-white px-3 py-2 text-xs text-[#141b12] outline-none"
+                      />
+                    </div>
+                  </div>
+                </details>
               </div>
 
-              {/* Address override */}
+              {/* Address text */}
               <div>
                 <label className="block text-xs font-semibold text-[#15370d] mb-1.5">
-                  Alamat Lengkap
+                  Alamat Lengkap / Patokan Lokasi
                 </label>
                 <input
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Jl. Raya Kuta, Badung, Bali"
+                  placeholder="Contoh: Jl. Pantai Kuta No. 12, Badung, Bali (dekat pos penjaga)"
                   className="w-full rounded-xl border border-[#d1d8cd] bg-[#f5f7f4] px-4 py-3 text-sm text-[#141b12] placeholder:text-[#9ca896] focus:border-[#266210] focus:ring-2 focus:ring-[#266210]/20 outline-none transition-colors"
                 />
               </div>
 
-              {/* Submit error */}
+              {/* Submit error message */}
               {submitError && (
                 <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800">
                   <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
@@ -1017,7 +1427,7 @@ export default function LaporPage() {
                 {submitting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Mengirim Laporan...
+                    Menyimpan Laporan...
                   </>
                 ) : (
                   <>
@@ -1041,8 +1451,8 @@ export default function LaporPage() {
                 Laporan Berhasil Dikirim
               </h2>
               <p className="mt-2 text-sm text-[#52604d] max-w-md leading-relaxed">
-                Terima kasih atas partisipasi Anda. Laporan akan diproses
-                oleh petugas terkait dan dapat dipantau melalui Peta Hotspot.
+                Terima kasih atas partisipasi Anda. Laporan Anda berhasil dicatat
+                dan diteruskan untuk penanganan oleh instansi terkait di Bali.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
@@ -1065,7 +1475,6 @@ export default function LaporPage() {
         )}
       </div>
 
-      {/* Hidden canvas for camera capture */}
       <canvas ref={canvasRef} className="hidden" />
     </div>
   );
