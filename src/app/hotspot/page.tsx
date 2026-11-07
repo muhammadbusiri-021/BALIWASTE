@@ -394,7 +394,7 @@ export default function HotspotPage() {
           {viewMode === "split" && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Map (7 cols) */}
-              <div className="lg:col-span-7 h-[520px] sticky top-24">
+              <div className="lg:col-span-7 h-[560px] min-h-[520px] w-full sticky top-24">
                 <BaliHotspotMap
                   hotspots={filteredHotspots}
                   selectedHotspot={selectedHotspot}

@@ -37,3 +37,14 @@ body {
   margin: 0;
   padding: 0;
 }
+
+/* Leaflet customizations: sembunyikan attribution bawaan & hilangkan background default marker */
+.leaflet-control-attribution {
+  display: none !important;
+}
+
+.bali-cluster-icon,
+.custom-hotspot-pin {
+  background: transparent !important;
+  border: none !important;
+}
