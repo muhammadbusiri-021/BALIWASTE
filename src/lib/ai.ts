@@ -46,7 +46,7 @@ Aturan confidence: nilai angka desimal antara 0.0 sampai 1.0. Jika di bawah 0.60
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash",
       contents: [
         {
           role: "user",
@@ -154,7 +154,7 @@ Berikan output JSON terstruktur.
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
