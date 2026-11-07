@@ -73,3 +73,17 @@ export type {
   NewAiRecommendation,
 } from "@/lib/db/schema";
 
+
+export interface ReportActivityItem {
+  id: string;
+  reportId: string;
+  action: string;
+  notes?: string | null;
+  imageUrl?: string | null;
+  createdAt: string;
+}
+
+export interface HandlingTaskItem extends HotspotPoint {
+  allocatedFleet?: string;
+  activities?: ReportActivityItem[];
+}

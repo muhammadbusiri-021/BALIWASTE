@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MapPin, BarChart3, AlertCircle, Menu, X, PlusCircle } from "lucide-react";
+import { MapPin, BarChart3, AlertCircle, Menu, X, PlusCircle, Sparkles } from "lucide-react";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -33,6 +33,7 @@ export function Navbar() {
   const navLinks = [
     { href: "/lapor", label: "Lapor Sampah", icon: AlertCircle },
     { href: "/hotspot", label: "Peta Hotspot", icon: MapPin },
+    { href: "/rekomendasi", label: "Rekomendasi AI", icon: Sparkles },
     { href: "/dashboard", label: "Environmental Dashboard", icon: BarChart3 },
   ];
 

@@ -24,3 +24,11 @@ export const recommendationSchema = z.object({
   locationDescription: z.string().optional(),
   address: z.string().optional(),
 });
+
+export const updateReportStatusSchema = z.object({
+  reportId: z.string().min(1, "ID laporan wajib disertakan"),
+  status: z.enum(["reported", "verified", "in_progress", "resolved"]),
+  action: z.string().min(2, "Aksi penanganan minimal 2 karakter"),
+  notes: z.string().optional(),
+  allocatedFleet: z.string().optional(),
+});

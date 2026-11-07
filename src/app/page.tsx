@@ -109,11 +109,12 @@ export default function Home() {
 
           <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {/* Feature 1 */}
-            <div
+            <Link
+              href="/lapor"
               data-aos="fade-up"
               data-aos-delay="100"
               suppressHydrationWarning
-              className="relative rounded-2xl border border-[#e2e7df] bg-white p-6 shadow-sm hover:border-[#266210] transition-colors"
+              className="relative rounded-2xl border border-[#e2e7df] bg-white p-6 shadow-sm hover:border-[#266210] hover:shadow-md transition-all group block"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#eaf2e8] text-[#15370d]">
                 <Camera className="h-6 w-6 text-[#266210]" />
@@ -129,14 +130,15 @@ export default function Home() {
               <div className="mt-4 inline-flex items-center text-xs font-semibold text-[#266210]">
                 AI Image Classification →
               </div>
-            </div>
+            </Link>
 
             {/* Feature 2 */}
-            <div
+            <Link
+              href="/hotspot"
               data-aos="fade-up"
               data-aos-delay="200"
               suppressHydrationWarning
-              className="relative rounded-2xl border border-[#e2e7df] bg-white p-6 shadow-sm hover:border-[#266210] transition-colors"
+              className="relative rounded-2xl border border-[#e2e7df] bg-white p-6 shadow-sm hover:border-[#266210] hover:shadow-md transition-all group block"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#eaf2e8] text-[#15370d]">
                 <MapPin className="h-6 w-6 text-[#266210]" />
@@ -152,14 +154,15 @@ export default function Home() {
               <div className="mt-4 inline-flex items-center text-xs font-semibold text-[#266210]">
                 Geo-clustering & Spatial Map →
               </div>
-            </div>
+            </Link>
 
             {/* Feature 3 */}
-            <div
+            <Link
+              href="/rekomendasi"
               data-aos="fade-up"
               data-aos-delay="300"
               suppressHydrationWarning
-              className="relative rounded-2xl border border-[#e2e7df] bg-white p-6 shadow-sm hover:border-[#266210] transition-colors"
+              className="relative rounded-2xl border border-[#e2e7df] bg-white p-6 shadow-sm hover:border-[#266210] hover:shadow-md transition-all group block"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#eaf2e8] text-[#15370d]">
                 <Sparkles className="h-6 w-6 text-[#266210]" />
@@ -175,7 +178,7 @@ export default function Home() {
               <div className="mt-4 inline-flex items-center text-xs font-semibold text-[#266210]">
                 LLM Decision Support →
               </div>
-            </div>
+            </Link>
 
             {/* Feature 4 */}
             <div
