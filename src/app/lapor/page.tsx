@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import dynamic from "next/dynamic";
 import {
   Camera,
   Upload,
@@ -24,10 +25,24 @@ import {
   Shield,
   Search,
   Crosshair,
-  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { WASTE_CATEGORIES, BALI_REGIONS } from "@/constants";
+import { WASTE_CATEGORIES } from "@/constants";
+import { isLocationInBali } from "@/components/maps/BaliLocationPicker";
+
+// Dynamic import untuk Leaflet map (client-only agar terhindar dari SSR window undefined)
+const BaliLocationPicker = dynamic(
+  () => import("@/components/maps/BaliLocationPicker"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-64 sm:h-72 w-full rounded-xl bg-[#edf1eb] animate-pulse flex flex-col items-center justify-center gap-2 text-xs text-[#52604d] border border-[#d1d8cd]">
+        <Loader2 className="h-5 w-5 animate-spin text-[#266210]" />
+        <span>Memuat Peta Pulau Bali...</span>
+      </div>
+    ),
+  }
+);
 
 /* ────────────────────────────────── types ────────────────────────────────── */
 
@@ -53,7 +68,7 @@ type RecommendationResult = {
 
 type Step = "capture" | "analyze" | "form" | "success";
 
-/* ─────────────────────── preset koordinat wilayah bali ─────────────────────── */
+/* ─────────────────────── preset koordinat 9 wilayah bali ─────────────────────── */
 
 const BALI_REGION_PRESETS: Record<
   string,
@@ -168,8 +183,8 @@ export default function LaporPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
-  const [latitude, setLatitude] = useState<number | null>(null);
-  const [longitude, setLongitude] = useState<number | null>(null);
+  const [latitude, setLatitude] = useState<number | null>(-8.6705); // Default Kota Denpasar, Bali
+  const [longitude, setLongitude] = useState<number | null>(115.2126);
 
   /* ─── location helper states ─── */
   const [locationLoading, setLocationLoading] = useState(false);
@@ -177,9 +192,12 @@ export default function LaporPage() {
   const [locationSuccessMsg, setLocationSuccessMsg] = useState<string | null>(
     null
   );
+  const [outsideBaliNotice, setOutsideBaliNotice] = useState<string | null>(
+    null
+  );
   const [locationMode, setLocationMode] = useState<
-    "gps" | "preset" | "search" | "manual"
-  >("gps");
+    "map" | "gps" | "preset" | "search"
+  >("map");
   const [searchQuery, setSearchQuery] = useState("");
   const [searching, setSearching] = useState(false);
 
@@ -377,6 +395,28 @@ export default function LaporPage() {
     }
   }, []);
 
+  // Update lokasi saat pengguna mengklik atau menggeser pin di peta Pulau Bali
+  const handleMapLocationChange = useCallback(
+    (lat: number, lng: number) => {
+      if (isLocationInBali(lat, lng)) {
+        setLatitude(lat);
+        setLongitude(lng);
+        setOutsideBaliNotice(null);
+        setLocationError(null);
+        setLocationSuccessMsg(
+          `Titik lokasi diatur di Pulau Bali (${lat.toFixed(4)}, ${lng.toFixed(4)}).`
+        );
+        reverseGeocode(lat, lng);
+      } else {
+        setLocationError(
+          "Titik yang Anda pilih berada di luar wilayah Pulau Bali. Silakan klik area di dalam Pulau Bali."
+        );
+      }
+    },
+    [reverseGeocode]
+  );
+
+  // Deteksi GPS Browser dengan Validasi Ketat Pulau Bali
   const getLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setLocationError("Geolocation tidak didukung oleh browser ini.");
@@ -385,23 +425,58 @@ export default function LaporPage() {
     setLocationLoading(true);
     setLocationError(null);
     setLocationSuccessMsg(null);
+    setOutsideBaliNotice(null);
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const lat = Number(pos.coords.latitude.toFixed(6));
-        const lng = Number(pos.coords.longitude.toFixed(6));
-        setLatitude(lat);
-        setLongitude(lng);
+        const rawLat = pos.coords.latitude;
+        const rawLng = pos.coords.longitude;
+        const lat = Number(rawLat.toFixed(6));
+        const lng = Number(rawLng.toFixed(6));
         setLocationLoading(false);
-        setLocationSuccessMsg("Koordinat GPS berhasil diperoleh.");
-        reverseGeocode(lat, lng);
+
+        // CEK APAKAH BENAR-BENAR BERADA DI DALAM PULAU BALI
+        if (isLocationInBali(lat, lng)) {
+          setLatitude(lat);
+          setLongitude(lng);
+          setLocationSuccessMsg("Koordinat GPS Anda di Pulau Bali berhasil dideteksi.");
+          reverseGeocode(lat, lng);
+        } else {
+          // LOKASI TERDETEKSI DI LUAR BALI (misal IP ISP di Jawa/Surabaya/Jakarta)
+          // Cari nama kota/provinsi luar Bali tersebut untuk ditampilkan di pesan
+          fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=id`
+          )
+            .then((r) => r.json())
+            .then((data) => {
+              const regionName =
+                data?.address?.city ||
+                data?.address?.county ||
+                data?.address?.state ||
+                "Luar Bali";
+              setOutsideBaliNotice(
+                `Perangkat Anda terdeteksi berada di ${regionName} (di luar Pulau Bali). Karena sistem BALIWASTE dikhususkan untuk Pulau Bali, lokasi Anda diarahkan ke wilayah Bali. Silakan klik titik manapun pada peta Bali di bawah ini atau pilih wilayah yang sesuai.`
+              );
+            })
+            .catch(() => {
+              setOutsideBaliNotice(
+                "Perangkat Anda terdeteksi berada di luar Pulau Bali. Karena sistem BALIWASTE dikhususkan untuk Pulau Bali, silakan klik titik pada peta Bali di bawah atau pilih wilayah Bali yang sesuai."
+              );
+            });
+
+          // Otomatis arahkan ke pusat Bali (Kota Denpasar) agar tidak menggunakan koordinat luar Bali
+          setLatitude(-8.6705);
+          setLongitude(115.2126);
+          setAddress("Kota Denpasar, Bali");
+          setLocationMode("map");
+        }
       },
       (err) => {
         setLocationLoading(false);
         const msg =
           err.code === 1
-            ? "Izin akses lokasi ditolak. Silakan izinkan akses pada browser, atau gunakan pilihan wilayah / cari tempat di bawah."
-            : "Gagal mendapatkan lokasi GPS akurat. Anda dapat memilih wilayah Bali di bawah ini.";
+            ? "Izin akses lokasi ditolak oleh browser. Anda dapat langsung mengklik titik di peta Pulau Bali atau memilih wilayah di bawah."
+            : "Gagal mendeteksi sinyal GPS. Silakan tentukan lokasi dengan mengklik peta Pulau Bali di bawah.";
         setLocationError(msg);
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
@@ -416,6 +491,7 @@ export default function LaporPage() {
         setLongitude(preset.lng);
         setAddress(preset.defaultAddress);
         setLocationError(null);
+        setOutsideBaliNotice(null);
         setLocationSuccessMsg(`Lokasi diatur ke ${regionName}.`);
       }
     },
@@ -427,28 +503,44 @@ export default function LaporPage() {
     setSearching(true);
     setLocationError(null);
     setLocationSuccessMsg(null);
+    setOutsideBaliNotice(null);
 
     try {
-      const q = encodeURIComponent(
-        searchQuery.toLowerCase().includes("bali")
-          ? searchQuery
-          : `${searchQuery}, Bali`
-      );
+      // Pastikan pencarian selalu diarahkan ke Pulau Bali
+      const queryText = searchQuery.toLowerCase().includes("bali")
+        ? searchQuery
+        : `${searchQuery}, Bali, Indonesia`;
+
+      const q = encodeURIComponent(queryText);
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1&accept-language=id`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5&accept-language=id&viewbox=114.35,-8.05,115.85,-8.95&bounded=1`
       );
       const data = await res.json();
+
       if (Array.isArray(data) && data.length > 0) {
-        const item = data[0];
-        const lat = parseFloat(item.lat);
-        const lng = parseFloat(item.lon);
-        setLatitude(lat);
-        setLongitude(lng);
-        setAddress(item.display_name);
-        setLocationSuccessMsg(`Lokasi ditemukan: ${item.display_name.split(",")[0]}`);
+        // Cari hasil yang benar-benar ada di dalam pulau Bali
+        const match = data.find((item) =>
+          isLocationInBali(parseFloat(item.lat), parseFloat(item.lon))
+        ) || data[0];
+
+        const lat = parseFloat(match.lat);
+        const lng = parseFloat(match.lon);
+
+        if (isLocationInBali(lat, lng)) {
+          setLatitude(Number(lat.toFixed(6)));
+          setLongitude(Number(lng.toFixed(6)));
+          setAddress(match.display_name);
+          setLocationSuccessMsg(
+            `Lokasi ditemukan di Bali: ${match.display_name.split(",")[0]}`
+          );
+        } else {
+          setLocationError(
+            "Tempat yang dicari berada di luar Pulau Bali. Harap cari lokasi di wilayah Bali."
+          );
+        }
       } else {
         setLocationError(
-          "Lokasi tidak ditemukan. Coba gunakan nama tempat atau jalan yang lebih spesifik."
+          "Tempat tidak ditemukan di Bali. Coba gunakan nama tempat, pantai, atau jalan yang lebih spesifik."
         );
       }
     } catch {
@@ -464,6 +556,7 @@ export default function LaporPage() {
     setAddress("");
     setLocationError(null);
     setLocationSuccessMsg(null);
+    setOutsideBaliNotice(null);
   }, []);
 
   /* ════════════════════════ SUBMIT REPORT ════════════════════════ */
@@ -476,7 +569,14 @@ export default function LaporPage() {
     }
     if (latitude === null || longitude === null) {
       setSubmitError(
-        "Lokasi belum ditentukan. Silakan pilih atau deteksi lokasi terlebih dahulu."
+        "Lokasi belum ditentukan. Silakan klik pada peta Bali atau pilih wilayah."
+      );
+      return;
+    }
+
+    if (!isLocationInBali(latitude, longitude)) {
+      setSubmitError(
+        "Koordinat laporan berada di luar wilayah Pulau Bali. Silakan klik area di dalam Pulau Bali pada peta."
       );
       return;
     }
@@ -485,7 +585,7 @@ export default function LaporPage() {
     setSubmitError(null);
 
     try {
-      /* ── 1. Upload image (Cloudinary with local fallback) ── */
+      /* ── 1. Upload foto (Cloudinary dengan fallback lokal otomatis) ── */
       const uploadRes = await fetch("/api/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -503,7 +603,7 @@ export default function LaporPage() {
 
       const imageUrl: string = uploadJson.data.imageUrl;
 
-      /* ── 2. Submit report ── */
+      /* ── 2. Simpan laporan sampah ke sistem ── */
       const reportRes = await fetch("/api/reports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -563,7 +663,7 @@ export default function LaporPage() {
           </h1>
           <p className="mt-2 text-sm text-[#52604d] max-w-xl mx-auto leading-relaxed">
             Ambil atau unggah foto tumpukan sampah. AI akan mengidentifikasi
-            jenis sampah secara otomatis dan memberikan rekomendasi penanganan.
+            jenis sampah secara otomatis dan memetakan titiknya di Pulau Bali.
           </p>
         </div>
 
@@ -1025,268 +1125,117 @@ export default function LaporPage() {
                 />
               </div>
 
-              {/* ─── UPGRADED LOCATION SECTION ─── */}
+              {/* ─── STRICT BALI-ONLY LOCATION SECTION ─── */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="block text-xs font-semibold text-[#15370d]">
-                    Lokasi Penemuan Sampah <span className="text-red-500">*</span>
-                  </label>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#15370d]">
+                      Lokasi Sampah di Pulau Bali <span className="text-red-500">*</span>
+                    </label>
+                    <p className="text-[11px] text-[#52604d] mt-0.5">
+                      Peta dikunci khusus Pulau Bali. Klik atau geser pin langsung pada peta.
+                    </p>
+                  </div>
                   {latitude !== null && longitude !== null && (
                     <button
                       type="button"
                       onClick={resetLocation}
                       className="text-[11px] font-medium text-red-600 hover:underline"
                     >
-                      Hapus / Reset Lokasi
+                      Hapus Titik
                     </button>
                   )}
                 </div>
 
-                {/* Display Current Selected Location Status */}
-                {latitude !== null && longitude !== null ? (
-                  <div className="rounded-xl border border-[#e2e7df] bg-[#f5f7f4] p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-xs text-[#266210] font-semibold">
-                        <CheckCircle2 className="h-4 w-4" />
-                        Lokasi Terpilih
-                      </div>
-                      <a
-                        href={`https://www.google.com/maps?q=${latitude},${longitude}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-[11px] font-medium text-[#266210] hover:underline"
-                      >
-                        Buka di Google Maps
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-xs text-[#52604d] bg-white p-2.5 rounded-lg border border-[#e2e7df]">
-                      <div>
-                        <span className="font-semibold text-[#15370d]">
-                          Latitude:
-                        </span>{" "}
-                        {latitude.toFixed(6)}
-                      </div>
-                      <div>
-                        <span className="font-semibold text-[#15370d]">
-                          Longitude:
-                        </span>{" "}
-                        {longitude.toFixed(6)}
-                      </div>
-                    </div>
-
-                    {address && (
-                      <p className="text-xs text-[#52604d] leading-relaxed">
-                        <span className="font-semibold text-[#15370d]">
-                          Alamat:
-                        </span>{" "}
-                        {address}
+                {/* Warning jika perangkat user terdeteksi di luar Bali */}
+                {outsideBaliNotice && (
+                  <div className="flex items-start gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-xs text-amber-900 shadow-sm animate-in fade-in duration-300">
+                    <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-600 flex-shrink-0" />
+                    <div>
+                      <p className="font-bold">Lokasi Terdeteksi di Luar Pulau Bali</p>
+                      <p className="mt-0.5 leading-relaxed text-amber-800">
+                        {outsideBaliNotice}
                       </p>
-                    )}
-
-                    {/* Interactive OpenStreetMap preview iframe */}
-                    <div className="overflow-hidden rounded-lg border border-[#e2e7df] shadow-inner h-44 w-full">
-                      <iframe
-                        title="Peta Lokasi Sampah"
-                        width="100%"
-                        height="100%"
-                        className="border-0"
-                        loading="lazy"
-                        src={`https://www.openstreetmap.org/export/embed.html?bbox=${
-                          longitude - 0.015
-                        }%2C${latitude - 0.015}%2C${longitude + 0.015}%2C${
-                          latitude + 0.015
-                        }&layer=mapnik&marker=${latitude}%2C${longitude}`}
-                      />
                     </div>
-
-                    {/* Action buttons when location is set */}
-                    <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-[#e2e7df]">
-                      <button
-                        type="button"
-                        onClick={getLocation}
-                        disabled={locationLoading}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#d1d8cd] bg-white px-3 py-1.5 text-xs font-semibold text-[#15370d] hover:bg-[#edf1eb] transition-colors"
-                      >
-                        {locationLoading ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <RotateCcw className="h-3.5 w-3.5" />
-                        )}
-                        {locationLoading
-                          ? "Mendeteksi ulang GPS..."
-                          : "Perbarui via GPS"}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setLocationMode(
-                            locationMode === "preset" ? "gps" : "preset"
-                          )
-                        }
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#d1d8cd] bg-white px-3 py-1.5 text-xs font-semibold text-[#52604d] hover:bg-[#edf1eb] transition-colors"
-                      >
-                        Pilih Wilayah Lain
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setLocationMode(
-                            locationMode === "search" ? "gps" : "search"
-                          )
-                        }
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#d1d8cd] bg-white px-3 py-1.5 text-xs font-semibold text-[#52604d] hover:bg-[#edf1eb] transition-colors"
-                      >
-                        Cari Tempat Lain
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  /* When no location is selected yet */
-                  <div className="space-y-3">
-                    {/* Method Selector Tabs */}
-                    <div className="grid grid-cols-3 gap-1 rounded-xl bg-[#edf1eb] p-1 text-xs font-semibold">
-                      <button
-                        type="button"
-                        onClick={() => setLocationMode("gps")}
-                        className={cn(
-                          "rounded-lg py-2 transition-colors",
-                          locationMode === "gps"
-                            ? "bg-white text-[#15370d] shadow-sm"
-                            : "text-[#52604d] hover:text-[#15370d]"
-                        )}
-                      >
-                        GPS Otomatis
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setLocationMode("preset")}
-                        className={cn(
-                          "rounded-lg py-2 transition-colors",
-                          locationMode === "preset"
-                            ? "bg-white text-[#15370d] shadow-sm"
-                            : "text-[#52604d] hover:text-[#15370d]"
-                        )}
-                      >
-                        Pilih Wilayah Bali
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setLocationMode("search")}
-                        className={cn(
-                          "rounded-lg py-2 transition-colors",
-                          locationMode === "search"
-                            ? "bg-white text-[#15370d] shadow-sm"
-                            : "text-[#52604d] hover:text-[#15370d]"
-                        )}
-                      >
-                        Cari Alamat / Tempat
-                      </button>
-                    </div>
-
-                    {/* Mode 1: GPS Browser */}
-                    {locationMode === "gps" && (
-                      <div className="space-y-2">
-                        <button
-                          type="button"
-                          onClick={getLocation}
-                          disabled={locationLoading}
-                          className="w-full flex items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-[#c5cfbf] bg-white py-4 text-sm font-semibold text-[#15370d] hover:border-[#266210] hover:bg-[#edf1eb] disabled:opacity-60 transition-colors shadow-sm"
-                        >
-                          {locationLoading ? (
-                            <Loader2 className="h-5 w-5 animate-spin text-[#266210]" />
-                          ) : (
-                            <Crosshair className="h-5 w-5 text-[#266210]" />
-                          )}
-                          {locationLoading
-                            ? "Mendeteksi posisi GPS..."
-                            : "Deteksi Lokasi GPS Saat Ini"}
-                        </button>
-                        <p className="text-[11px] text-[#52604d] text-center">
-                          Catatan: Pada laptop/PC, posisi browser mengacu pada
-                          jaringan WiFi/ISP. Jika tidak sesuai, silakan gunakan tab
-                          <strong> &quot;Pilih Wilayah Bali&quot;</strong> atau
-                          <strong> &quot;Cari Alamat&quot;</strong>.
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Mode 2: Quick Bali Region Presets */}
-                    {locationMode === "preset" && (
-                      <div className="rounded-xl border border-[#e2e7df] bg-white p-4 space-y-2.5">
-                        <p className="text-xs font-semibold text-[#15370d]">
-                          Pilih Kabupaten / Kota Laporan di Bali:
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {Object.keys(BALI_REGION_PRESETS).map((reg) => (
-                            <button
-                              key={reg}
-                              type="button"
-                              onClick={() => selectRegionPreset(reg)}
-                              className="flex items-center gap-2 rounded-lg border border-[#e2e7df] bg-[#f5f7f4] px-3 py-2 text-left text-xs font-medium text-[#141b12] hover:border-[#266210] hover:bg-[#edf1eb] transition-colors"
-                            >
-                              <MapPin className="h-3.5 w-3.5 text-[#266210] flex-shrink-0" />
-                              <span className="truncate">{reg}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Mode 3: Search Location in Bali */}
-                    {locationMode === "search" && (
-                      <div className="rounded-xl border border-[#e2e7df] bg-white p-4 space-y-3">
-                        <p className="text-xs font-semibold text-[#15370d]">
-                          Ketik nama tempat, pantai, pasar, atau jalan di Bali:
-                        </p>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                searchLocation();
-                              }
-                            }}
-                            placeholder="Contoh: Pantai Kuta, Ubud Monkey Forest, Sanur..."
-                            className="flex-1 rounded-xl border border-[#d1d8cd] bg-[#f5f7f4] px-3.5 py-2.5 text-xs text-[#141b12] placeholder:text-[#9ca896] focus:border-[#266210] outline-none"
-                          />
-                          <button
-                            type="button"
-                            onClick={searchLocation}
-                            disabled={searching}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-[#266210] hover:bg-[#347f18] px-4 py-2.5 text-xs font-semibold text-white disabled:opacity-60 transition-colors shadow-sm"
-                          >
-                            {searching ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Search className="h-4 w-4" />
-                            )}
-                            Cari
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
 
-                {/* Sub-panels for manual override if location is already set */}
-                {latitude !== null && longitude !== null && locationMode === "preset" && (
-                  <div className="rounded-xl border border-[#e2e7df] bg-white p-4 space-y-2">
-                    <p className="text-xs font-semibold text-[#15370d]">
-                      Pilih Wilayah Bali Lainnya:
-                    </p>
+                {/* ── INTERACTIVE BALI MAP (Strictly Locked to Bali) ── */}
+                <BaliLocationPicker
+                  latitude={latitude}
+                  longitude={longitude}
+                  onLocationChange={handleMapLocationChange}
+                />
+
+                {/* Method Selector Bar */}
+                <div className="grid grid-cols-3 gap-1 rounded-xl bg-[#edf1eb] p-1 text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={getLocation}
+                    disabled={locationLoading}
+                    className="flex items-center justify-center gap-1.5 rounded-lg py-2 bg-white text-[#15370d] shadow-sm hover:bg-white/80 transition-colors"
+                  >
+                    {locationLoading ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-[#266210]" />
+                    ) : (
+                      <Crosshair className="h-3.5 w-3.5 text-[#266210]" />
+                    )}
+                    <span>{locationLoading ? "Mengecek GPS..." : "Deteksi GPS"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setLocationMode(locationMode === "preset" ? "map" : "preset")
+                    }
+                    className={cn(
+                      "rounded-lg py-2 transition-colors",
+                      locationMode === "preset"
+                        ? "bg-[#266210] text-white shadow-sm"
+                        : "text-[#52604d] hover:text-[#15370d]"
+                    )}
+                  >
+                    Pilih 9 Wilayah Bali
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setLocationMode(locationMode === "search" ? "map" : "search")
+                    }
+                    className={cn(
+                      "rounded-lg py-2 transition-colors",
+                      locationMode === "search"
+                        ? "bg-[#266210] text-white shadow-sm"
+                        : "text-[#52604d] hover:text-[#15370d]"
+                    )}
+                  >
+                    Cari Tempat di Bali
+                  </button>
+                </div>
+
+                {/* Sub-panel 1: Quick Bali Region Presets */}
+                {locationMode === "preset" && (
+                  <div className="rounded-xl border border-[#e2e7df] bg-white p-4 space-y-2.5 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold text-[#15370d]">
+                        Pilih Kabupaten / Kota Laporan di Bali:
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setLocationMode("map")}
+                        className="text-[11px] text-[#52604d] hover:underline"
+                      >
+                        Tutup
+                      </button>
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {Object.keys(BALI_REGION_PRESETS).map((reg) => (
                         <button
                           key={reg}
                           type="button"
-                          onClick={() => selectRegionPreset(reg)}
+                          onClick={() => {
+                            selectRegionPreset(reg);
+                            setLocationMode("map");
+                          }}
                           className="flex items-center gap-2 rounded-lg border border-[#e2e7df] bg-[#f5f7f4] px-3 py-2 text-left text-xs font-medium text-[#141b12] hover:border-[#266210] hover:bg-[#edf1eb] transition-colors"
                         >
                           <MapPin className="h-3.5 w-3.5 text-[#266210] flex-shrink-0" />
@@ -1297,11 +1246,21 @@ export default function LaporPage() {
                   </div>
                 )}
 
-                {latitude !== null && longitude !== null && locationMode === "search" && (
-                  <div className="rounded-xl border border-[#e2e7df] bg-white p-4 space-y-3">
-                    <p className="text-xs font-semibold text-[#15370d]">
-                      Cari Tempat Baru di Bali:
-                    </p>
+                {/* Sub-panel 2: Search Specific Place in Bali */}
+                {locationMode === "search" && (
+                  <div className="rounded-xl border border-[#e2e7df] bg-white p-4 space-y-3 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold text-[#15370d]">
+                        Cari nama tempat, pantai, atau jalan di Bali:
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setLocationMode("map")}
+                        className="text-[11px] text-[#52604d] hover:underline"
+                      >
+                        Tutup
+                      </button>
+                    </div>
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -1313,14 +1272,14 @@ export default function LaporPage() {
                             searchLocation();
                           }
                         }}
-                        placeholder="Contoh: Pantai Sanur, Pasar Badung..."
+                        placeholder="Contoh: Pantai Sanur, Ubud, Nusa Dua, Canggu..."
                         className="flex-1 rounded-xl border border-[#d1d8cd] bg-[#f5f7f4] px-3.5 py-2.5 text-xs text-[#141b12] placeholder:text-[#9ca896] focus:border-[#266210] outline-none"
                       />
                       <button
                         type="button"
                         onClick={searchLocation}
                         disabled={searching}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#266210] hover:bg-[#347f18] px-4 py-2.5 text-xs font-semibold text-white disabled:opacity-60 transition-colors"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#266210] hover:bg-[#347f18] px-4 py-2.5 text-xs font-semibold text-white disabled:opacity-60 transition-colors shadow-sm"
                       >
                         {searching ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -1333,7 +1292,7 @@ export default function LaporPage() {
                   </div>
                 )}
 
-                {/* Feedback notifications */}
+                {/* Notifications & Feedback */}
                 {locationSuccessMsg && (
                   <p className="flex items-center gap-1.5 text-xs text-[#266210]">
                     <CheckCircle2 className="h-3.5 w-3.5" />
@@ -1347,56 +1306,9 @@ export default function LaporPage() {
                     <p>{locationError}</p>
                   </div>
                 )}
-
-                {/* Manual coordinate toggle */}
-                <details className="text-xs text-[#52604d]">
-                  <summary className="cursor-pointer font-semibold text-[#15370d] hover:underline">
-                    Input / Edit Angka Koordinat Manual
-                  </summary>
-                  <div className="mt-2 grid grid-cols-2 gap-3 p-3 bg-[#f5f7f4] rounded-xl border border-[#e2e7df]">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-[#15370d] mb-1">
-                        Latitude
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        value={latitude ?? ""}
-                        onChange={(e) =>
-                          setLatitude(
-                            e.target.value === ""
-                              ? null
-                              : parseFloat(e.target.value)
-                          )
-                        }
-                        placeholder="-8.4095"
-                        className="w-full rounded-lg border border-[#d1d8cd] bg-white px-3 py-2 text-xs text-[#141b12] outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-semibold text-[#15370d] mb-1">
-                        Longitude
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        value={longitude ?? ""}
-                        onChange={(e) =>
-                          setLongitude(
-                            e.target.value === ""
-                              ? null
-                              : parseFloat(e.target.value)
-                          )
-                        }
-                        placeholder="115.1889"
-                        className="w-full rounded-lg border border-[#d1d8cd] bg-white px-3 py-2 text-xs text-[#141b12] outline-none"
-                      />
-                    </div>
-                  </div>
-                </details>
               </div>
 
-              {/* Address text */}
+              {/* Address / Landmark Details */}
               <div>
                 <label className="block text-xs font-semibold text-[#15370d] mb-1.5">
                   Alamat Lengkap / Patokan Lokasi
@@ -1410,7 +1322,7 @@ export default function LaporPage() {
                 />
               </div>
 
-              {/* Submit error message */}
+              {/* Submit Error */}
               {submitError && (
                 <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800">
                   <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
@@ -1418,7 +1330,7 @@ export default function LaporPage() {
                 </div>
               )}
 
-              {/* Submit button */}
+              {/* Submit Button */}
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
