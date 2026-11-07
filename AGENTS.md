@@ -108,12 +108,13 @@ Output → Waste Hotspot Map + Recommendation + Dashboard
 
 ### 🟢 YANG HARUS DILAKUKAN
 
-1. **SELALU** baca dan pahami kode existing sebelum memodifikasi.
-2. **SELALU** pertahankan semua komentar dan dokumentasi yang tidak terkait dengan perubahan Anda.
-3. **SELALU** gunakan **TypeScript** secara konsisten. Jangan campur `.js` dan `.ts` — semua file harus `.ts` atau `.tsx`.
-4. **SELALU** test fitur setelah implementasi — pastikan tidak merusak fitur lain.
-5. **SELALU** update `README.md` jika menambah fitur, mengubah setup instructions, atau menambah dependency.
-6. **SELALU** tulis commit message yang deskriptif dalam format:
+1. **SELALU jalankan `git pull origin main` (atau sinkronkan repo) sebelum mulai menulis kode atau menambahkan fitur baru.** Pastikan repository lokal selalu up-to-date dengan kode terbaru yang di-push oleh rekan tim di GitHub sebelum memodifikasi atau membuat file baru agar tidak terjadi konflik atau menimpa pekerjaan anggota tim lain.
+2. **SELALU** baca dan pahami kode existing sebelum memodifikasi.
+3. **SELALU** pertahankan semua komentar dan dokumentasi yang tidak terkait dengan perubahan Anda.
+4. **SELALU** gunakan **TypeScript** secara konsisten. Jangan campur `.js` dan `.ts` — semua file harus `.ts` atau `.tsx`.
+5. **SELALU** test fitur setelah implementasi — pastikan tidak merusak fitur lain.
+6. **SELALU** update `README.md` jika menambah fitur, mengubah setup instructions, atau menambah dependency.
+7. **SELALU** tulis commit message yang deskriptif dalam format:
    ```
    feat: tambah fitur analisis gambar sampah via Gemini Vision
    fix: perbaiki error upload foto di halaman laporan
@@ -534,6 +535,7 @@ npx prisma db push        # atau: npx prisma migrate dev
 npm run dev               # http://localhost:3000
 
 # Git workflow
+git pull origin main      # WAJIB: Tarik perubahan terbaru dari rekan tim sebelum mulai koding
 git checkout -b feat/nama-fitur
 git add .
 git commit -m "feat: deskripsi perubahan"
@@ -555,9 +557,10 @@ npm run lint
 > Bagian ini digunakan untuk catatan antar anggota tim. Tambahkan catatan baru di bawah, jangan hapus yang lama.
 
 - **[2026-11-06]** Proyek diinisialisasi. AGENTS.md dibuat sebagai panduan AI agent.
+- **[2026-11-07]** Ditambahkan aturan wajib: AI Agent HARUS melakukan `git pull origin main` sebelum mulai menulis kode atau menambahkan fitur baru agar selalu sinkron dengan pekerjaan rekan tim.
 
 ---
 
-**📌 Terakhir diperbarui:** 2026-11-06  
+**📌 Terakhir diperbarui:** 2026-11-07  
 **📌 Dibuat oleh:** Tim BALIWASTE  
 **📌 File ini adalah bagian dari repositori dan TIDAK BOLEH dihapus.**
