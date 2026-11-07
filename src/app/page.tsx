@@ -1,12 +1,6 @@
 // src/app/page.tsx
 import Link from "next/link";
-import {
-  Camera,
-  MapPin,
-  Sparkles,
-  BarChart3,
-  ArrowRight,
-} from "lucide-react";
+import { Camera, MapPin, Sparkles, BarChart3, ArrowRight } from "lucide-react";
 
 export default function Home() {
   return (
@@ -48,9 +42,7 @@ export default function Home() {
               className="mt-6 text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl leading-[1.18]"
             >
               Pemantauan & Penanganan Sampah Bali Berbasis{" "}
-              <span className="text-[#65da3c]">
-                Artificial Intelligence
-              </span>
+              <span className="text-[#65da3c]">Artificial Intelligence</span>
             </h1>
 
             {/* Refined, Clean Description */}
@@ -60,9 +52,10 @@ export default function Home() {
               suppressHydrationWarning
               className="mt-5 text-sm sm:text-base md:text-lg leading-relaxed text-gray-200/90 font-normal"
             >
-              Sistem kecerdasan buatan terpadu untuk mengidentifikasi jenis sampah dari foto,
-              memetakan sebaran titik hotspot secara geospasial, dan mengotomasi rekomendasi
-              penanganan taktis demi menjaga kelestarian alam Pulau Dewata.
+              Sistem kecerdasan buatan terpadu untuk mengidentifikasi jenis
+              sampah dari foto, memetakan sebaran titik hotspot secara
+              geospasial, dan mengotomasi rekomendasi penanganan taktis demi
+              menjaga kelestarian alam Pulau Dewata.
             </p>
 
             {/* CTA Buttons */}
@@ -129,8 +122,9 @@ export default function Home() {
                 Pelaporan & AI Vision
               </h3>
               <p className="mt-2 text-xs sm:text-sm text-[#52604d] leading-relaxed">
-                Masyarakat mengunggah foto sampah. Gemini Vision AI otomatis mendeteksi kategori (organik,
-                plastik, B3, dsb), tingkat keparahan, dan estimasi volume secara real-time.
+                Masyarakat mengunggah foto sampah. Gemini Vision AI otomatis
+                mendeteksi kategori (organik, plastik, B3, dsb), tingkat
+                keparahan, dan estimasi volume secara real-time.
               </p>
               <div className="mt-4 inline-flex items-center text-xs font-semibold text-[#266210]">
                 AI Image Classification →
@@ -151,8 +145,9 @@ export default function Home() {
                 Waste Hotspot Mapping
               </h3>
               <p className="mt-2 text-xs sm:text-sm text-[#52604d] leading-relaxed">
-                Visualisasi titik persebaran timbulan sampah di seluruh 9 kabupaten/kota se-Bali secara
-                geospasial dengan indikator warna tingkat urgensi.
+                Visualisasi titik persebaran timbulan sampah di seluruh 9
+                kabupaten/kota se-Bali secara geospasial dengan indikator warna
+                tingkat urgensi.
               </p>
               <div className="mt-4 inline-flex items-center text-xs font-semibold text-[#266210]">
                 Geo-clustering & Spatial Map →
@@ -173,8 +168,9 @@ export default function Home() {
                 Smart Handling AI
               </h3>
               <p className="mt-2 text-xs sm:text-sm text-[#52604d] leading-relaxed">
-                Rekomendasi metode penanganan sampah yang disesuaikan dengan jenis limbah, estimasi
-                kebutuhan armada, serta instansi/satgas yang berwenang menindaklanjuti.
+                Rekomendasi metode penanganan sampah yang disesuaikan dengan
+                jenis limbah, estimasi kebutuhan armada, serta instansi/satgas
+                yang berwenang menindaklanjuti.
               </p>
               <div className="mt-4 inline-flex items-center text-xs font-semibold text-[#266210]">
                 LLM Decision Support →
@@ -195,8 +191,9 @@ export default function Home() {
                 Impact Dashboard
               </h3>
               <p className="mt-2 text-xs sm:text-sm text-[#52604d] leading-relaxed">
-                Statistik analitik kondisi persampahan, persentase penyelesaian, tren komposisi sampah,
-                dan metrik dampak lingkungan bagi para pembuat kebijakan.
+                Statistik analitik kondisi persampahan, persentase penyelesaian,
+                tren komposisi sampah, dan metrik dampak lingkungan bagi para
+                pembuat kebijakan.
               </p>
               <div className="mt-4 inline-flex items-center text-xs font-semibold text-[#266210]">
                 Predictive Analytics →
@@ -233,9 +230,12 @@ export default function Home() {
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#15370d] text-white font-bold text-base shadow-sm ring-4 ring-[#eaf2e8]">
                 1
               </div>
-              <h4 className="mt-5 font-bold text-[#15370d] text-base">Warga Mengambil Foto</h4>
+              <h4 className="mt-5 font-bold text-[#15370d] text-base">
+                Warga Mengambil Foto
+              </h4>
               <p className="mt-2 text-xs sm:text-sm text-[#52604d] max-w-xs">
-                Warga memotret timbulan sampah liar dan menetapkan titik koordinat lokasi di peta.
+                Warga memotret timbulan sampah liar dan menetapkan titik
+                koordinat lokasi di peta.
               </p>
             </div>
 
@@ -249,9 +249,12 @@ export default function Home() {
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#15370d] text-white font-bold text-base shadow-sm ring-4 ring-[#eaf2e8]">
                 2
               </div>
-              <h4 className="mt-5 font-bold text-[#15370d] text-base">AI Menganalisis Citra</h4>
+              <h4 className="mt-5 font-bold text-[#15370d] text-base">
+                AI Menganalisis Citra
+              </h4>
               <p className="mt-2 text-xs sm:text-sm text-[#52604d] max-w-xs">
-                Gemini Vision mengklasifikasi kategori sampah, confidence score, dan tingkat keparahan.
+                Gemini Vision mengklasifikasi kategori sampah, confidence score,
+                dan tingkat keparahan.
               </p>
             </div>
 
@@ -265,9 +268,12 @@ export default function Home() {
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#15370d] text-white font-bold text-base shadow-sm ring-4 ring-[#eaf2e8]">
                 3
               </div>
-              <h4 className="mt-5 font-bold text-[#15370d] text-base">Rekomendasi Cerdas</h4>
+              <h4 className="mt-5 font-bold text-[#15370d] text-base">
+                Rekomendasi Cerdas
+              </h4>
               <p className="mt-2 text-xs sm:text-sm text-[#52604d] max-w-xs">
-                AI merumuskan instruksi penanganan taktis, kebutuhan armada, dan instansi pelaksana.
+                AI merumuskan instruksi penanganan taktis, kebutuhan armada, dan
+                instansi pelaksana.
               </p>
             </div>
 
@@ -281,9 +287,12 @@ export default function Home() {
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#15370d] text-white font-bold text-base shadow-sm ring-4 ring-[#eaf2e8]">
                 4
               </div>
-              <h4 className="mt-5 font-bold text-[#15370d] text-base">Tindakan Cepat Berbasis Data</h4>
+              <h4 className="mt-5 font-bold text-[#15370d] text-base">
+                Tindakan Cepat Berbasis Data
+              </h4>
               <p className="mt-2 text-xs sm:text-sm text-[#52604d] max-w-xs">
-                Petugas kebersihan membersihkan lokasi dan memverifikasi status laporan hingga tuntas.
+                Petugas kebersihan membersihkan lokasi dan memverifikasi status
+                laporan hingga tuntas.
               </p>
             </div>
           </div>
@@ -303,7 +312,8 @@ export default function Home() {
                 Wujudkan Bali Bersih dari Sampah
               </h3>
               <p className="mt-2 text-xs sm:text-sm text-[#d6e4d2] leading-relaxed">
-                Implementasi terpadu Pergub Bali No. 97/2018 dan 47/2019 melalui inovasi teknologi kecerdasan buatan.
+                Implementasi terpadu Pergub Bali No. 97/2018 dan 47/2019 melalui
+                inovasi teknologi kecerdasan buatan.
               </p>
             </div>
             <div className="pt-2 md:pt-0 shrink-0">
