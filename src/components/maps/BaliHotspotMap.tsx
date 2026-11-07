@@ -91,82 +91,27 @@ export default function BaliHotspotMap({
   // Active visualization mode
   const [visMode, setVisMode] = useState<"combo" | "heatmap" | "cluster">("combo");
 
-  // Inisialisasi Peta Leaflet secara dinamis di sisi klien
+  // REFS untuk mencegah stale closure saat zoom/pan peta
+  const hotspotsRef = useRef<HotspotPoint[]>(hotspots);
+  const visModeRef = useRef<"combo" | "heatmap" | "cluster">(visMode);
+
   useEffect(() => {
-    if (!mapContainerRef.current) return;
-    let isCancelled = false;
+    hotspotsRef.current = hotspots;
+  }, [hotspots]);
 
-    import("leaflet").then((leafletModule) => {
-      if (isCancelled || !mapContainerRef.current) return;
-      const L = (leafletModule as any).default || leafletModule;
-      leafletRef.current = L;
+  useEffect(() => {
+    visModeRef.current = visMode;
+  }, [visMode]);
 
-      // Cegah inisialisasi ganda
-      if (mapRef.current) return;
-
-      const map = L.map(mapContainerRef.current, {
-        center: BALI_CENTER,
-        zoom: 10,
-        minZoom: 9.5,
-        maxZoom: 18,
-        maxBounds: BALI_BOUNDS,
-        maxBoundsViscosity: 1.0,
-        zoomControl: false,
-        attributionControl: false, // Menghilangkan teks Leaflet | OpenStreetMap | CARTO di pojok kanan bawah
-      });
-
-      // Kontrol zoom di kanan atas
-      L.control.zoom({ position: "topright" }).addTo(map);
-
-      // Tile Layer OpenStreetMap standar yang stabil dan bebas downtime
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        bounds: BALI_BOUNDS,
-      }).addTo(map);
-
-      // Layer groups untuk Heatmap dan Cluster
-      const heatmapLayer = L.layerGroup().addTo(map);
-      const clusterLayer = L.layerGroup().addTo(map);
-
-      heatmapLayerRef.current = heatmapLayer;
-      clusterLayerRef.current = clusterLayer;
-      mapRef.current = map;
-
-      // Invalidate size agar peta langsung ter-render proporsional
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 150);
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 500);
-
-      // Render awal lapisan geospatial heatmap & marker clustering
-      updateMapLayers(L, map, hotspots, visMode);
-
-      // Render ulang cluster saat peta di-zoom atau digeser
-      map.on("zoomend", () => {
-        updateMapLayers(L, map, hotspots, visMode);
-      });
-    });
-
-    return () => {
-      isCancelled = true;
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Algoritma Geo-Clustering berbasis jarak piksel dinamis terhadap level zoom
+  // Algoritma Geo-Clustering berbasis koordinat matematis dan proyeksi piksel
   const computeClusters = useCallback(
     (L: any, map: any, points: HotspotPoint[]): ClusterNode[] => {
-      if (!map || points.length === 0) return [];
+      if (!map || !L || points.length === 0) return [];
 
       const currentZoom = map.getZoom();
-      // Radius piksel untuk pengelompokan (makin zoom in, radius makin rapat)
-      const pixelRadius = currentZoom >= 14 ? 35 : currentZoom >= 12 ? 45 : 60;
+      // Radius pengelompokan yang cerdas: saat zoom in ke tingkat jalan/desa, biarkan pin terurai
+      const pixelRadius =
+        currentZoom >= 16 ? 25 : currentZoom >= 14 ? 35 : currentZoom >= 12 ? 45 : 55;
 
       const clusters: ClusterNode[] = [];
       const assigned = new Set<string>();
@@ -177,7 +122,7 @@ export default function BaliHotspotMap({
 
         let p1Pixel: any;
         try {
-          p1Pixel = map.latLngToLayerPoint([p1.latitude, p1.longitude]);
+          p1Pixel = map.project(L.latLng(p1.latitude, p1.longitude), currentZoom);
         } catch {
           continue;
         }
@@ -194,14 +139,12 @@ export default function BaliHotspotMap({
 
           let p2Pixel: any;
           try {
-            p2Pixel = map.latLngToLayerPoint([p2.latitude, p2.longitude]);
+            p2Pixel = map.project(L.latLng(p2.latitude, p2.longitude), currentZoom);
           } catch {
             continue;
           }
 
-          const dx = p1Pixel.x - p2Pixel.x;
-          const dy = p1Pixel.y - p2Pixel.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
+          const dist = p1Pixel.distanceTo(p2Pixel);
 
           if (dist <= pixelRadius) {
             clusterPoints.push(p2);
@@ -212,10 +155,10 @@ export default function BaliHotspotMap({
         }
 
         // Tentukan tingkat konsentrasi gradasi warna:
-        // Merah: sangat tinggi (>= 4 titik atau ada titik kritis)
-        // Oranye: tinggi (>= 3 titik atau ada titik tingkat tinggi)
-        // Kuning: sedang (2 titik atau tingkat sedang)
-        // Hijau: rendah (1 titik atau tingkat rendah)
+        // - Merah: konsentrasi sangat tinggi (>= 4 titik atau ada titik kritis)
+        // - Oranye: konsentrasi tinggi (>= 3 titik atau ada titik tingkat tinggi)
+        // - Kuning: konsentrasi sedang (2 titik atau tingkat sedang)
+        // - Hijau: konsentrasi rendah (1 titik atau tingkat rendah)
         const count = clusterPoints.length;
         const hasCritical = clusterPoints.some((p) => p.severity === "critical");
         const hasHigh = clusterPoints.some((p) => p.severity === "high");
@@ -248,8 +191,13 @@ export default function BaliHotspotMap({
 
   // Render Lapisan Geospatial Heatmap + Marker Clustering
   const updateMapLayers = useCallback(
-    (L: any, map: any, points: HotspotPoint[], mode: "combo" | "heatmap" | "cluster") => {
-      if (!map || !heatmapLayerRef.current || !clusterLayerRef.current) return;
+    (
+      L: any,
+      map: any,
+      points: HotspotPoint[],
+      mode: "combo" | "heatmap" | "cluster"
+    ) => {
+      if (!map || !L || !heatmapLayerRef.current || !clusterLayerRef.current) return;
 
       const heatmapLayer = heatmapLayerRef.current;
       const clusterLayer = clusterLayerRef.current;
@@ -257,63 +205,78 @@ export default function BaliHotspotMap({
       heatmapLayer.clearLayers();
       clusterLayer.clearLayers();
 
+      if (!points || points.length === 0) return;
+
       const currentZoom = map.getZoom();
 
       // ─── 1. LAPISAN GEOSPATIAL HEATMAP ───
-      // Menggambar lingkaran gradasi panas konsentrasi sampah
+      // Menggambar aura gradasi panas densitas sampah yang konsisten di setiap level zoom
       if (mode === "combo" || mode === "heatmap") {
-        // Skala radius heatmap dalam meter sesuai zoom
-        const radiusMultiplier = currentZoom >= 13 ? 0.4 : currentZoom >= 11 ? 0.7 : 1.0;
+        let radiusMeter = 4500;
+        if (currentZoom >= 16) {
+          radiusMeter = 450;
+        } else if (currentZoom >= 14) {
+          radiusMeter = 900;
+        } else if (currentZoom >= 12) {
+          radiusMeter = 2000;
+        } else if (currentZoom >= 11) {
+          radiusMeter = 3200;
+        }
 
         points.forEach((p) => {
-          let baseRadius = 2500;
+          let multiplier = 1.0;
           let coreColor = "#16a34a"; // Hijau
           let midColor = "#eab308"; // Kuning
           let outerColor = "#22c55e"; // Hijau luar
 
           if (p.severity === "critical") {
-            baseRadius = 5500;
+            multiplier = 1.6;
             coreColor = "#dc2626"; // Merah
             midColor = "#ea580c"; // Oranye
             outerColor = "#eab308"; // Kuning
           } else if (p.severity === "high") {
-            baseRadius = 4200;
+            multiplier = 1.3;
             coreColor = "#ea580c"; // Oranye
             midColor = "#eab308"; // Kuning
             outerColor = "#16a34a"; // Hijau
           } else if (p.severity === "medium") {
-            baseRadius = 3000;
+            multiplier = 1.0;
             coreColor = "#eab308"; // Kuning
             midColor = "#84cc16";
             outerColor = "#22c55e";
+          } else {
+            multiplier = 0.8;
+            coreColor = "#16a34a"; // Hijau
+            midColor = "#22c55e";
+            outerColor = "#86efac";
           }
 
-          const r = baseRadius * radiusMultiplier;
+          const r = radiusMeter * multiplier;
 
-          // Lingkaran Luar (Aura persebaran konsentrasi)
+          // Lingkaran Luar (Aura persebaran gradasi)
           L.circle([p.latitude, p.longitude], {
             radius: r,
             color: "transparent",
             fillColor: outerColor,
-            fillOpacity: 0.16,
+            fillOpacity: 0.18,
             interactive: false,
           }).addTo(heatmapLayer);
 
           // Lingkaran Tengah (Transisi densitas)
           L.circle([p.latitude, p.longitude], {
-            radius: r * 0.58,
+            radius: r * 0.6,
             color: "transparent",
             fillColor: midColor,
-            fillOpacity: 0.28,
+            fillOpacity: 0.32,
             interactive: false,
           }).addTo(heatmapLayer);
 
           // Lingkaran Inti (Pusat konsentrasi penumpukan sampah)
           L.circle([p.latitude, p.longitude], {
-            radius: r * 0.28,
+            radius: r * 0.3,
             color: "transparent",
             fillColor: coreColor,
-            fillOpacity: 0.48,
+            fillOpacity: 0.52,
             interactive: false,
           }).addTo(heatmapLayer);
         });
@@ -331,7 +294,7 @@ export default function BaliHotspotMap({
           const singlePoint = cluster.points[0];
 
           // Buat HTML Icon Marker Cluster
-          let iconSize = isSingle ? 34 : count >= 5 ? 46 : 40;
+          const iconSize = isSingle ? 36 : count >= 5 ? 46 : 40;
 
           const pulseRingHtml =
             cluster.concentration === "critical"
@@ -428,7 +391,7 @@ export default function BaliHotspotMap({
 
           // Interaksi saat marker diklik:
           if (isSingle) {
-            // Jika single point, langsung buka popup / trigger modal
+            // Jika single point, langsung buka popup & trigger modal
             const popupHtml = `
               <div style="font-family: inherit; font-size: 12px; max-width: 230px; padding: 2px;">
                 <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 6px;">
@@ -481,11 +444,10 @@ export default function BaliHotspotMap({
             // Jika cluster multi-titik, klik akan memperbesar (zoom-in) untuk mengurai titik
             marker.on("click", () => {
               map.flyTo([cluster.lat, cluster.lng], Math.min(map.getZoom() + 2, 17), {
-                duration: 0.8,
+                duration: 0.7,
               });
             });
 
-            // Tooltip ringkas saat hover
             marker.bindTooltip(
               `<strong>${cfg.label}</strong><br/>${count} Titik Sampah (Klik untuk perbesar)`,
               { direction: "top", offset: [0, -iconSize / 2] }
@@ -498,6 +460,84 @@ export default function BaliHotspotMap({
     },
     [computeClusters, onSelectHotspot]
   );
+
+  // Inisialisasi Peta Leaflet secara dinamis di sisi klien
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    let isCancelled = false;
+
+    import("leaflet").then((leafletModule) => {
+      if (isCancelled || !mapContainerRef.current) return;
+      const L = (leafletModule as any).default || leafletModule;
+      leafletRef.current = L;
+
+      // Cegah inisialisasi ganda
+      if (mapRef.current) return;
+
+      const map = L.map(mapContainerRef.current, {
+        center: BALI_CENTER,
+        zoom: 10,
+        minZoom: 9.5,
+        maxZoom: 18,
+        maxBounds: BALI_BOUNDS,
+        maxBoundsViscosity: 1.0,
+        zoomControl: false,
+        attributionControl: false, // Menghilangkan teks Leaflet | OpenStreetMap | CARTO di pojok kanan bawah
+      });
+
+      // Kontrol zoom di kanan atas
+      L.control.zoom({ position: "topright" }).addTo(map);
+
+      // Tile Layer OpenStreetMap standar yang stabil dan bebas downtime
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        bounds: BALI_BOUNDS,
+      }).addTo(map);
+
+      // Layer groups untuk Heatmap dan Cluster
+      const heatmapLayer = L.layerGroup().addTo(map);
+      const clusterLayer = L.layerGroup().addTo(map);
+
+      heatmapLayerRef.current = heatmapLayer;
+      clusterLayerRef.current = clusterLayer;
+      mapRef.current = map;
+
+      // Invalidate size agar peta langsung ter-render proporsional
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 150);
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 500);
+
+      // Render awal lapisan geospatial heatmap & marker clustering
+      updateMapLayers(L, map, hotspotsRef.current, visModeRef.current);
+
+      // Listener saat zoom atau move: selalu membaca data terbaru dari ref
+      const handleViewChange = () => {
+        if (leafletRef.current && mapRef.current) {
+          updateMapLayers(
+            leafletRef.current,
+            mapRef.current,
+            hotspotsRef.current,
+            visModeRef.current
+          );
+        }
+      };
+
+      map.on("zoomend", handleViewChange);
+      map.on("moveend", handleViewChange);
+    });
+
+    return () => {
+      isCancelled = true;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Perbarui layer saat data hotspots atau visual mode berubah
   useEffect(() => {
