@@ -307,10 +307,10 @@ export default function HotspotPage() {
                 className="rounded-lg border border-[#d1d8cd] bg-[#f5f7f4] px-2.5 py-1.5 text-xs font-semibold text-[#141b12] focus:border-[#266210] outline-none"
               >
                 <option value="all">Semua Keparahan</option>
-                <option value="critical">🔴 Kritis (Darurat)</option>
-                <option value="high">🟠 Tinggi</option>
-                <option value="medium">🟡 Sedang</option>
-                <option value="low">🟢 Rendah</option>
+                <option value="critical">Kritis (Darurat)</option>
+                <option value="high">Tinggi</option>
+                <option value="medium">Sedang</option>
+                <option value="low">Rendah</option>
               </select>
 
               {/* Category Filter */}
@@ -582,3 +582,4 @@ export default function HotspotPage() {
     </div>
   );
 }
+
