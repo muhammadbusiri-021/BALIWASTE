@@ -25,6 +25,7 @@ import {
   Shield,
   Search,
   Crosshair,
+  Edit2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WASTE_CATEGORIES } from "@/constants";
@@ -169,12 +170,15 @@ export default function LaporPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
   /* ─── AI analysis ─── */
   const [analyzing, setAnalyzing] = useState(false);
   const [classification, setClassification] =
     useState<ClassificationResult | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("organik");
+  const [selectedSeverity, setSelectedSeverity] = useState<string>("low");
   const [recommendation, setRecommendation] =
     useState<RecommendationResult | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -182,7 +186,7 @@ export default function LaporPage() {
   /* ─── form fields ─── */
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [address, setAddress] = useState("");
+  const [address, setAddress] = useState("Kota Denpasar, Bali");
   const [latitude, setLatitude] = useState<number | null>(-8.6705); // Default Kota Denpasar, Bali
   const [longitude, setLongitude] = useState<number | null>(115.2126);
 
@@ -239,13 +243,31 @@ export default function LaporPage() {
         setFacingMode(facing);
       } catch {
         setCameraActive(false);
-        alert(
-          "Tidak dapat mengakses kamera. Pastikan Anda mengizinkan akses kamera pada browser."
-        );
+        // Fallback otomatis ke input capture kamera bawaan OS jika getUserMedia gagal
+        cameraInputRef.current?.click();
       }
     },
     [facingMode, stopCamera]
   );
+
+  // Fungsi pembuka kamera yang pintar: coba getUserMedia jika secure (HTTPS/localhost), fallback ke input file kamera di HP
+  const handleOpenCameraClick = useCallback(() => {
+    const isSecure =
+      typeof window !== "undefined" &&
+      (window.isSecureContext ||
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1");
+
+    if (
+      typeof navigator !== "undefined" &&
+      typeof navigator.mediaDevices?.getUserMedia === "function" &&
+      isSecure
+    ) {
+      startCamera();
+    } else {
+      cameraInputRef.current?.click();
+    }
+  }, [startCamera]);
 
   const capturePhoto = useCallback(() => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -312,9 +334,30 @@ export default function LaporPage() {
     setShowRecommendation(false);
     setStep("capture");
     if (fileInputRef.current) fileInputRef.current.value = "";
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
   }, []);
 
-  /* ════════════════════════ AI ANALYSIS ════════════════════════ */
+  /* ════════════════════════ AI ANALYSIS & MANUAL FALLBACK ════════════════════════ */
+
+  const handleManualEntry = useCallback(() => {
+    const manualClass: ClassificationResult = {
+      category: "campuran_tidak_teridentifikasi",
+      categoryLabel: "Campuran / Perlu Verifikasi",
+      confidence: 0.5,
+      detectedItems: ["Diinput manual oleh pelapor"],
+      estimatedVolume: "1 kantong",
+      severity: "medium",
+      notes: "Kategori dan tingkat keparahan ditentukan secara manual oleh pelapor.",
+      needsVerification: true,
+    };
+    setClassification(manualClass);
+    setSelectedCategory("campuran_tidak_teridentifikasi");
+    setSelectedSeverity("medium");
+    if (!title) {
+      setTitle("Laporan Tumpukan Sampah");
+    }
+    setStep("form");
+  }, [title]);
 
   const runAnalysis = useCallback(async () => {
     if (!imageBase64) return;
@@ -345,6 +388,8 @@ export default function LaporPage() {
 
       const cls: ClassificationResult = classifyJson.data;
       setClassification(cls);
+      setSelectedCategory(cls.category);
+      setSelectedSeverity(cls.severity);
 
       const label = getCategoryLabel(cls.category);
       setTitle(`Laporan Sampah ${label}`);
@@ -426,6 +471,7 @@ export default function LaporPage() {
     setLocationError(null);
     setLocationSuccessMsg(null);
     setOutsideBaliNotice(null);
+    setLocationMode("gps");
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -443,7 +489,6 @@ export default function LaporPage() {
           reverseGeocode(lat, lng);
         } else {
           // LOKASI TERDETEKSI DI LUAR BALI (misal IP ISP di Jawa/Surabaya/Jakarta)
-          // Cari nama kota/provinsi luar Bali tersebut untuk ditampilkan di pesan
           fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=id`
           )
@@ -464,11 +509,10 @@ export default function LaporPage() {
               );
             });
 
-          // Otomatis arahkan ke pusat Bali (Kota Denpasar) agar tidak menggunakan koordinat luar Bali
+          // Otomatis arahkan ke pusat Bali (Kota Denpasar)
           setLatitude(-8.6705);
           setLongitude(115.2126);
           setAddress("Kota Denpasar, Bali");
-          setLocationMode("map");
         }
       },
       (err) => {
@@ -506,7 +550,6 @@ export default function LaporPage() {
     setOutsideBaliNotice(null);
 
     try {
-      // Pastikan pencarian selalu diarahkan ke Pulau Bali
       const queryText = searchQuery.toLowerCase().includes("bali")
         ? searchQuery
         : `${searchQuery}, Bali, Indonesia`;
@@ -518,10 +561,10 @@ export default function LaporPage() {
       const data = await res.json();
 
       if (Array.isArray(data) && data.length > 0) {
-        // Cari hasil yang benar-benar ada di dalam pulau Bali
-        const match = data.find((item) =>
-          isLocationInBali(parseFloat(item.lat), parseFloat(item.lon))
-        ) || data[0];
+        const match =
+          data.find((item) =>
+            isLocationInBali(parseFloat(item.lat), parseFloat(item.lon))
+          ) || data[0];
 
         const lat = parseFloat(match.lat);
         const lng = parseFloat(match.lon);
@@ -614,9 +657,9 @@ export default function LaporPage() {
           longitude,
           address: address || undefined,
           imageUrl,
-          aiWasteType: classification.category,
+          aiWasteType: selectedCategory,
           aiConfidence: classification.confidence,
-          severity: classification.severity,
+          severity: selectedSeverity,
         }),
       });
       const reportJson = await reportRes.json();
@@ -637,7 +680,17 @@ export default function LaporPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [imageBase64, classification, title, description, address, latitude, longitude]);
+  }, [
+    imageBase64,
+    classification,
+    title,
+    description,
+    address,
+    latitude,
+    longitude,
+    selectedCategory,
+    selectedSeverity,
+  ]);
 
   const startNewReport = useCallback(() => {
     resetImage();
@@ -662,8 +715,8 @@ export default function LaporPage() {
             Pelaporan Sampah
           </h1>
           <p className="mt-2 text-sm text-[#52604d] max-w-xl mx-auto leading-relaxed">
-            Ambil atau unggah foto tumpukan sampah. AI akan mengidentifikasi
-            jenis sampah secara otomatis dan memetakan titiknya di Pulau Bali.
+            Ambil atau unggah foto timbulan sampah. AI akan mengidentifikasi
+            kategori jenis sampah secara otomatis dan memetakan titiknya di Pulau Bali.
           </p>
         </div>
 
@@ -784,7 +837,8 @@ export default function LaporPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
-                  onClick={() => startCamera()}
+                  type="button"
+                  onClick={handleOpenCameraClick}
                   className="group flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#c5cfbf] bg-white p-8 sm:p-10 hover:border-[#266210] hover:bg-[#edf1eb] transition-colors"
                 >
                   <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#edf1eb] text-[#266210] group-hover:bg-[#266210] group-hover:text-white transition-colors">
@@ -801,6 +855,7 @@ export default function LaporPage() {
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => fileInputRef.current?.click()}
                   className="group flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#c5cfbf] bg-white p-8 sm:p-10 hover:border-[#266210] hover:bg-[#edf1eb] transition-colors"
                 >
@@ -817,6 +872,7 @@ export default function LaporPage() {
                   </div>
                 </button>
 
+                {/* Input file biasa dari galeri */}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -824,28 +880,61 @@ export default function LaporPage() {
                   className="hidden"
                   onChange={handleFileSelect}
                 />
+
+                {/* Input file capture langsung ke kamera HP (Fallback jika WebRTC kamera browser diblokir) */}
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
               </div>
             )}
 
             {aiError && (
-              <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-                <AlertTriangle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-semibold">Analisis Gagal</p>
-                  <p className="mt-0.5 text-red-700">{aiError}</p>
+              <div className="flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold">Analisis AI Mengalami Kendala</p>
+                    <p className="mt-0.5 text-red-700 text-xs leading-relaxed">
+                      {aiError}
+                    </p>
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleManualEntry}
+                  className="self-start inline-flex items-center gap-2 rounded-lg bg-white border border-[#c5cfbf] px-3.5 py-2 text-xs font-semibold text-[#15370d] hover:bg-[#edf1eb] transition-colors shadow-sm"
+                >
+                  Lanjut Isi Formulir Secara Manual →
+                </button>
               </div>
             )}
 
             {imagePreview && (
-              <button
-                onClick={runAnalysis}
-                disabled={analyzing}
-                className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-[#266210] hover:bg-[#347f18] disabled:opacity-60 disabled:cursor-not-allowed px-6 py-3.5 text-sm font-semibold text-white shadow-md transition-colors"
-              >
-                <Sparkles className="h-4 w-4" />
-                Analisis dengan AI
-              </button>
+              <div className="space-y-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={runAnalysis}
+                  disabled={analyzing}
+                  className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-[#266210] hover:bg-[#347f18] disabled:opacity-60 disabled:cursor-not-allowed px-6 py-3.5 text-sm font-semibold text-white shadow-md transition-colors"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Analisis dengan AI
+                </button>
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={handleManualEntry}
+                    className="text-xs text-[#52604d] hover:text-[#15370d] hover:underline transition-colors"
+                  >
+                    Atau lewati analisis AI dan isi formulir langsung
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         )}
@@ -887,23 +976,22 @@ export default function LaporPage() {
                   <span
                     className={cn(
                       "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold shadow-sm",
-                      CATEGORY_COLORS[classification.category] ||
+                      CATEGORY_COLORS[selectedCategory] ||
                         "bg-gray-100 text-gray-800 border-gray-200"
                     )}
                   >
                     <ImageIcon className="h-3.5 w-3.5" />
-                    {getCategoryLabel(classification.category)}
+                    {getCategoryLabel(selectedCategory)}
                   </span>
                   <span
                     className={cn(
                       "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold shadow-sm",
-                      SEVERITY_COLORS[classification.severity] ||
+                      SEVERITY_COLORS[selectedSeverity] ||
                         "bg-gray-100 text-gray-800"
                     )}
                   >
                     <AlertTriangle className="h-3.5 w-3.5" />
-                    {SEVERITY_LABELS[classification.severity] ||
-                      classification.severity}
+                    Tingkat: {SEVERITY_LABELS[selectedSeverity] || selectedSeverity}
                   </span>
                 </div>
               </div>
@@ -935,10 +1023,51 @@ export default function LaporPage() {
                   </div>
                   {classification.needsVerification && (
                     <p className="mt-2 flex items-center gap-1.5 text-xs text-amber-700">
-                      <AlertTriangle className="h-3.5 w-3.5" />
-                      Confidence rendah — perlu verifikasi manual oleh petugas
+                      <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
+                      Confidence rendah — silakan sesuaikan kategori atau tingkat keparahan jika perlu.
                     </p>
                   )}
+                </div>
+
+                {/* Penyesuaian Kategori & Keparahan oleh Pengguna jika AI keliru */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-[#edf1eb]">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#15370d] mb-1">
+                      Kategori Sampah (Bisa Disesuaikan)
+                    </label>
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => {
+                        setSelectedCategory(e.target.value);
+                        if (!title || title.startsWith("Laporan Sampah")) {
+                          setTitle(`Laporan Sampah ${getCategoryLabel(e.target.value)}`);
+                        }
+                      }}
+                      className="w-full rounded-xl border border-[#d1d8cd] bg-[#f5f7f4] px-3 py-2 text-xs font-medium text-[#141b12] focus:border-[#266210] outline-none"
+                    >
+                      {WASTE_CATEGORIES.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#15370d] mb-1">
+                      Tingkat Keparahan
+                    </label>
+                    <select
+                      value={selectedSeverity}
+                      onChange={(e) => setSelectedSeverity(e.target.value)}
+                      className="w-full rounded-xl border border-[#d1d8cd] bg-[#f5f7f4] px-3 py-2 text-xs font-medium text-[#141b12] focus:border-[#266210] outline-none"
+                    >
+                      <option value="low">Rendah (Sedikit / di sudut jalan)</option>
+                      <option value="medium">Sedang (Tumpukan di area publik)</option>
+                      <option value="high">Tinggi (Menumpuk di jalan utama / pantai)</option>
+                      <option value="critical">Kritis (Mencemari sungai / limbah B3)</option>
+                    </select>
+                  </div>
                 </div>
 
                 {classification.detectedItems.length > 0 && (
@@ -981,11 +1110,12 @@ export default function LaporPage() {
                 </div>
 
                 <button
+                  type="button"
                   onClick={resetImage}
                   className="flex items-center gap-1.5 text-xs font-medium text-[#52604d] hover:text-[#15370d] transition-colors"
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
-                  Ganti foto / analisis ulang
+                  Ganti foto / ambil ulang
                 </button>
               </div>
             </div>
@@ -994,6 +1124,7 @@ export default function LaporPage() {
             {recommendation && (
               <div className="overflow-hidden rounded-2xl border border-[#e2e7df] bg-white shadow-sm">
                 <button
+                  type="button"
                   onClick={() => setShowRecommendation(!showRecommendation)}
                   className="w-full flex items-center justify-between p-5 text-left hover:bg-[#f5f7f4] transition-colors"
                 >
@@ -1167,20 +1298,25 @@ export default function LaporPage() {
                   onLocationChange={handleMapLocationChange}
                 />
 
-                {/* Method Selector Bar */}
+                {/* Method Selector Bar: 3 Tab Rapi & Konsisten */}
                 <div className="grid grid-cols-3 gap-1 rounded-xl bg-[#edf1eb] p-1 text-xs font-semibold">
                   <button
                     type="button"
                     onClick={getLocation}
                     disabled={locationLoading}
-                    className="flex items-center justify-center gap-1.5 rounded-lg py-2 bg-white text-[#15370d] shadow-sm hover:bg-white/80 transition-colors"
+                    className={cn(
+                      "flex items-center justify-center gap-1.5 rounded-lg py-2 transition-all",
+                      locationMode === "gps"
+                        ? "bg-[#266210] text-white shadow-sm"
+                        : "text-[#52604d] hover:bg-white/60 hover:text-[#15370d]"
+                    )}
                   >
                     {locationLoading ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin text-[#266210]" />
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     ) : (
-                      <Crosshair className="h-3.5 w-3.5 text-[#266210]" />
+                      <Crosshair className="h-3.5 w-3.5" />
                     )}
-                    <span>{locationLoading ? "Mengecek GPS..." : "Deteksi GPS"}</span>
+                    <span>{locationLoading ? "Mengecek..." : "Deteksi GPS"}</span>
                   </button>
                   <button
                     type="button"
@@ -1188,13 +1324,14 @@ export default function LaporPage() {
                       setLocationMode(locationMode === "preset" ? "map" : "preset")
                     }
                     className={cn(
-                      "rounded-lg py-2 transition-colors",
+                      "flex items-center justify-center gap-1.5 rounded-lg py-2 transition-all",
                       locationMode === "preset"
                         ? "bg-[#266210] text-white shadow-sm"
-                        : "text-[#52604d] hover:text-[#15370d]"
+                        : "text-[#52604d] hover:bg-white/60 hover:text-[#15370d]"
                     )}
                   >
-                    Pilih 9 Wilayah Bali
+                    <MapPin className="h-3.5 w-3.5" />
+                    <span>9 Wilayah</span>
                   </button>
                   <button
                     type="button"
@@ -1202,13 +1339,14 @@ export default function LaporPage() {
                       setLocationMode(locationMode === "search" ? "map" : "search")
                     }
                     className={cn(
-                      "rounded-lg py-2 transition-colors",
+                      "flex items-center justify-center gap-1.5 rounded-lg py-2 transition-all",
                       locationMode === "search"
                         ? "bg-[#266210] text-white shadow-sm"
-                        : "text-[#52604d] hover:text-[#15370d]"
+                        : "text-[#52604d] hover:bg-white/60 hover:text-[#15370d]"
                     )}
                   >
-                    Cari Tempat di Bali
+                    <Search className="h-3.5 w-3.5" />
+                    <span>Cari Tempat</span>
                   </button>
                 </div>
 
@@ -1295,8 +1433,8 @@ export default function LaporPage() {
                 {/* Notifications & Feedback */}
                 {locationSuccessMsg && (
                   <p className="flex items-center gap-1.5 text-xs text-[#266210]">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    {locationSuccessMsg}
+                    <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span>{locationSuccessMsg}</span>
                   </p>
                 )}
 
@@ -1332,6 +1470,7 @@ export default function LaporPage() {
 
               {/* Submit Button */}
               <button
+                type="button"
                 onClick={handleSubmit}
                 disabled={submitting}
                 className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-[#266210] hover:bg-[#347f18] disabled:opacity-60 disabled:cursor-not-allowed px-6 py-3.5 text-sm font-semibold text-white shadow-md transition-colors"
@@ -1369,6 +1508,7 @@ export default function LaporPage() {
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <button
+                type="button"
                 onClick={startNewReport}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#266210] hover:bg-[#347f18] px-6 py-3 text-sm font-semibold text-white shadow-md transition-colors"
               >

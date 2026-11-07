@@ -98,9 +98,12 @@ export default function BaliLocationPicker({
         maxZoom: 18,
         maxBounds: BALI_BOUNDS, // Kunci batas area: hanya Pulau Bali
         maxBoundsViscosity: 1.0, // Dilarang men-scroll keluar Bali
-        zoomControl: true,
+        zoomControl: false, // Nonaktifkan zoom bawaan di kiri atas agar tidak tertutup banner
         attributionControl: false,
       });
+
+      // Pindahkan tombol zoom (+ / -) ke pojok kanan bawah agar rapi & tidak tabrakan dengan banner
+      L.control.zoom({ position: "bottomright" }).addTo(map);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
