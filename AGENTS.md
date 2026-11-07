@@ -561,10 +561,17 @@ npm run lint
 - **[2026-11-06]** Proyek diinisialisasi. AGENTS.md dibuat sebagai panduan AI agent.
 - **[2026-11-07]** Ditambahkan aturan wajib: AI Agent HARUS melakukan `git pull origin main` sebelum mulai menulis kode atau menambahkan fitur baru agar selalu sinkron dengan pekerjaan rekan tim.
 - **[2026-11-07]** **FITUR 1 SELESAI & TERUJI:** Halaman Pelaporan Sampah (`/lapor`) sudah tuntas 100%. Integrasi AI Vision (`gemini-3.5-flash`) aktif mendeteksi kategori sampah & estimasi tingkat keparahan, Leaflet Map untuk pemilihan titik koordinat Bali dengan navigasi zoom terkalibrasi, fallback input file & kamera mobile aman tanpa crash.
-- **[2026-11-07]** **TARGET BERIKUTNYA (PRIORITAS 🔴 KRITIS):** Pengerjaan **Fitur 2: Waste Hotspot Mapping (`/hotspot`)** — pembuatan peta interaktif sebaran titik sampah di Bali dengan geo-clustering, filter kategori & tingkat keparahan, serta popup/modal detail laporan sampah.
+- **[2026-11-07]** **FITUR 2 SELESAI & TERUJI:** Halaman Waste Hotspot Mapping (`/hotspot`) telah diimplementasikan lengkap:
+  1. Peta interaktif Leaflet Pulau Bali dengan batas ketat (`BALI_BOUNDS`, `minZoom: 9.5`), custom SVG pin marker berwarna sesuai tingkat keparahan (Kritis, Tinggi, Sedang, Rendah) dengan efek pulse animasi pada hotspot kritis.
+  2. Fitur Pencarian Daerah Berjenjang Lengkap: mendukung pencarian instan hingga ke level **Desa / Kelurahan, Kecamatan, dan Kabupaten / Kota** di seluruh Bali, lengkap dengan navigasi flyTo otomatis dan filter berjenjang.
+  3. Filter multi-dimensi: Tingkat Keparahan, Kategori Sampah, dan Status Penanganan.
+  4. Mode Tampilan: Peta & Daftar (Split View), Hanya Peta (Full Map), dan Hanya Daftar (Grid Cards).
+  5. Modal Detail Rekomendasi AI: pratinjau foto sampah, status, tingkat keparahan, serta rekomendasi penanganan AI (metode, instansi terkait, langkah tindakan, dan tombol rute Google Maps).
+  6. Endpoint API `/api/hotspot` tangguh dengan fallback data sebaran Bali jika database offline.
+- **[2026-11-07]** **TARGET BERIKUTNYA (PRIORITAS 🔴 KRITIS):** Pengerjaan **Fitur 3: Smart Waste Handling Recommendation** — integrasi sistem alokasi penanganan cerdas dan pelacakan tindak lanjut petugas di lapangan.
 
 ---
 
-**📌 Terakhir diperbarui:** 2026-11-07 (Fitur 1 Selesai - Persiapan Fitur 2 Waste Hotspot Mapping)  
+**📌 Terakhir diperbarui:** 2026-11-07 (Fitur 1 & 2 Selesai - Persiapan Fitur 3 Smart Waste Handling Recommendation)  
 **📌 Dibuat oleh:** Tim BALIWASTE  
 **📌 File ini adalah bagian dari repositori dan TIDAK BOLEH dihapus.**

@@ -55,6 +55,12 @@ export interface HotspotPoint {
   aiWasteType: string | null;
   imageUrl: string;
   address?: string | null;
+  description?: string | null;
+  aiConfidence?: number | null;
+  kabupaten?: string | null;
+  kecamatan?: string | null;
+  desa?: string | null;
+  recommendation?: WasteHandlingRecommendationResult | null;
   createdAt: string;
 }
 
