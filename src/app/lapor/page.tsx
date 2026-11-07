@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WASTE_CATEGORIES } from "@/constants";
-import { isLocationInBali } from "@/components/maps/BaliLocationPicker";
+import { isLocationInBali } from "@/lib/geo";
 
 // Dynamic import untuk Leaflet map (client-only agar terhindar dari SSR window undefined)
 const BaliLocationPicker = dynamic(

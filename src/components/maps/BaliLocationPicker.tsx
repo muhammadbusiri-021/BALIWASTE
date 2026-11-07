@@ -2,20 +2,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-
-// Batas wilayah Pulau Bali (Bounding Box ketat)
-export const BALI_BOUNDS: L.LatLngBoundsLiteral = [
-  [-8.95, 114.35], // Ujung Barat Daya (Selatan & Barat Bali)
-  [-8.05, 115.85], // Ujung Timur Laut (Utara & Timur Bali)
-];
-
-export const BALI_CENTER: [number, number] = [-8.4095, 115.1889];
-
-export function isLocationInBali(lat: number, lng: number): boolean {
-  return lat >= -8.95 && lat <= -8.05 && lng >= 114.35 && lng <= 115.85;
-}
+import { BALI_BOUNDS, BALI_CENTER, isLocationInBali } from "@/lib/geo";
 
 interface BaliLocationPickerProps {
   latitude: number | null;
@@ -29,11 +17,11 @@ export default function BaliLocationPicker({
   onLocationChange,
 }: BaliLocationPickerProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<L.Map | null>(null);
-  const markerRef = useRef<L.Marker | null>(null);
+  const mapRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
+  const leafletRef = useRef<any>(null);
 
-  // Buat custom SVG pin icon untuk tema BALIWASTE
-  const createPinIcon = () => {
+  const createPinIcon = (L: any) => {
     return L.divIcon({
       className: "custom-bali-pin",
       html: `
@@ -58,93 +46,121 @@ export default function BaliLocationPicker({
     });
   };
 
-  // Inisialisasi Map terkunci HANYA di Bali
+  const syncMarker = (L: any, map: any, lat: number, lng: number) => {
+    const latlng: [number, number] = [lat, lng];
+
+    if (markerRef.current) {
+      markerRef.current.setLatLng(latlng);
+    } else {
+      const marker = L.marker(latlng, {
+        icon: createPinIcon(L),
+        draggable: true,
+      }).addTo(map);
+
+      marker.on("dragend", () => {
+        const pos = marker.getLatLng();
+        if (isLocationInBali(pos.lat, pos.lng)) {
+          onLocationChange(Number(pos.lat.toFixed(6)), Number(pos.lng.toFixed(6)));
+        } else {
+          marker.setLatLng([lat, lng]);
+        }
+      });
+
+      markerRef.current = marker;
+    }
+
+    map.flyTo(latlng, Math.max(map.getZoom(), 13), { duration: 0.8 });
+  };
+
+  // Inisialisasi peta secara dinamis di sisi klien
   useEffect(() => {
     if (!mapContainerRef.current) return;
-    if (mapRef.current) return;
+    let isCancelled = false;
 
-    const initialCenter =
-      latitude !== null && longitude !== null && isLocationInBali(latitude, longitude)
-        ? [latitude, longitude]
-        : BALI_CENTER;
+    import("leaflet").then((leafletModule) => {
+      if (isCancelled || !mapContainerRef.current) return;
+      const L = (leafletModule as any).default || leafletModule;
+      leafletRef.current = L;
 
-    const initialZoom = latitude !== null && longitude !== null ? 14 : 10;
+      if (mapRef.current) return;
 
-    const map = L.map(mapContainerRef.current, {
-      center: initialCenter as [number, number],
-      zoom: initialZoom,
-      minZoom: 9.5, // Dibatasi agar tidak bisa zoom out ke luar Bali / Indonesia
-      maxZoom: 18,
-      maxBounds: BALI_BOUNDS, // KUNCI HANYA DI PULAU BALI
-      maxBoundsViscosity: 1.0, // 100% kaku, dilarang geser keluar Bali
-      zoomControl: true,
-      attributionControl: false,
-    });
+      const initialCenter =
+        latitude !== null && longitude !== null && isLocationInBali(latitude, longitude)
+          ? [latitude, longitude]
+          : BALI_CENTER;
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      bounds: BALI_BOUNDS,
-    }).addTo(map);
+      const initialZoom = latitude !== null && longitude !== null ? 14 : 10;
 
-    // Event Klik di peta Pulau Bali
-    map.on("click", (e: L.LeafletMouseEvent) => {
-      const { lat, lng } = e.latlng;
-      if (isLocationInBali(lat, lng)) {
-        onLocationChange(Number(lat.toFixed(6)), Number(lng.toFixed(6)));
+      const map = L.map(mapContainerRef.current, {
+        center: initialCenter as [number, number],
+        zoom: initialZoom,
+        minZoom: 9.5, // Kunci zoom out: tidak bisa melihat luar Bali
+        maxZoom: 18,
+        maxBounds: BALI_BOUNDS, // Kunci batas area: hanya Pulau Bali
+        maxBoundsViscosity: 1.0, // Dilarang men-scroll keluar Bali
+        zoomControl: true,
+        attributionControl: false,
+      });
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        bounds: BALI_BOUNDS,
+      }).addTo(map);
+
+      // Event klik pada peta Pulau Bali
+      map.on("click", (e: any) => {
+        const { lat, lng } = e.latlng;
+        if (isLocationInBali(lat, lng)) {
+          onLocationChange(Number(lat.toFixed(6)), Number(lng.toFixed(6)));
+        }
+      });
+
+      mapRef.current = map;
+
+      // Pasang marker jika koordinat sudah ada
+      if (
+        latitude !== null &&
+        longitude !== null &&
+        isLocationInBali(latitude, longitude)
+      ) {
+        syncMarker(L, map, latitude, longitude);
       }
     });
 
-    mapRef.current = map;
-
     return () => {
-      map.remove();
-      mapRef.current = null;
+      isCancelled = true;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update posisi Marker ketika latitude / longitude berubah
+  // Update marker saat props latitude / longitude berubah
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    const L = leafletRef.current;
+    if (!map || !L) return;
 
-    if (latitude !== null && longitude !== null && isLocationInBali(latitude, longitude)) {
-      const latlng: [number, number] = [latitude, longitude];
-
-      if (markerRef.current) {
-        markerRef.current.setLatLng(latlng);
-      } else {
-        const marker = L.marker(latlng, {
-          icon: createPinIcon(),
-          draggable: true,
-        }).addTo(map);
-
-        marker.on("dragend", () => {
-          const pos = marker.getLatLng();
-          if (isLocationInBali(pos.lat, pos.lng)) {
-            onLocationChange(Number(pos.lat.toFixed(6)), Number(pos.lng.toFixed(6)));
-          } else {
-            // Kembalikan ke koordinat sebelumnya jika di-drag ke luar Bali
-            marker.setLatLng([latitude, longitude]);
-          }
-        });
-
-        markerRef.current = marker;
-      }
-
-      // Fly to the new location smoothly
-      map.flyTo(latlng, Math.max(map.getZoom(), 13), { duration: 1 });
+    if (
+      latitude !== null &&
+      longitude !== null &&
+      isLocationInBali(latitude, longitude)
+    ) {
+      syncMarker(L, map, latitude, longitude);
     } else {
       if (markerRef.current) {
         markerRef.current.remove();
         markerRef.current = null;
       }
     }
-  }, [latitude, longitude, onLocationChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [latitude, longitude]);
 
   return (
     <div className="relative w-full overflow-hidden rounded-xl border border-[#d1d8cd] bg-[#edf1eb]">
-      {/* Top Banner Hint */}
+      {/* Top Banner Info */}
       <div className="absolute top-2.5 left-2.5 right-2.5 z-[1000] flex items-center justify-between gap-2 rounded-lg bg-white/95 backdrop-blur-sm px-3 py-1.5 shadow-md border border-[#e2e7df] text-[11px] text-[#15370d]">
         <div className="flex items-center gap-1.5 font-semibold">
           <span className="flex h-2 w-2 rounded-full bg-[#266210] animate-pulse" />
@@ -158,9 +174,9 @@ export default function BaliLocationPicker({
       {/* Map Container */}
       <div ref={mapContainerRef} className="h-64 sm:h-72 w-full z-0" />
 
-      {/* Footer Info */}
+      {/* Footer Status */}
       <div className="bg-[#f5f7f4] px-3 py-1.5 border-t border-[#e2e7df] flex items-center justify-between text-[11px] text-[#52604d]">
-        <span>Batas Area: Seluruh 9 Kabupaten/Kota di Bali</span>
+        <span>Area: 9 Kabupaten/Kota di Bali</span>
         {latitude !== null && longitude !== null && (
           <span className="font-semibold text-[#15370d]">
             Titik: {latitude.toFixed(4)}, {longitude.toFixed(4)}
