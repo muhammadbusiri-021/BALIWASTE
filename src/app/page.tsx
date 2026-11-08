@@ -181,11 +181,12 @@ export default function Home() {
             </Link>
 
             {/* Feature 4 */}
-            <div
+            <Link
+              href="/dashboard"
               data-aos="fade-up"
               data-aos-delay="400"
               suppressHydrationWarning
-              className="relative rounded-2xl border border-[#e2e7df] bg-white p-6 shadow-sm hover:border-[#266210] transition-colors"
+              className="relative rounded-2xl border border-[#e2e7df] bg-white p-6 shadow-sm hover:border-[#266210] hover:shadow-md transition-all group block"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#eaf2e8] text-[#15370d]">
                 <BarChart3 className="h-6 w-6 text-[#266210]" />
@@ -201,7 +202,7 @@ export default function Home() {
               <div className="mt-4 inline-flex items-center text-xs font-semibold text-[#266210]">
                 Predictive Analytics →
               </div>
-            </div>
+            </Link>
           </div>
         </div>
       </section>

@@ -87,3 +87,65 @@ export interface HandlingTaskItem extends HotspotPoint {
   allocatedFleet?: string;
   activities?: ReportActivityItem[];
 }
+
+export interface RegencyStatsItem {
+  kabupaten: string;
+  totalReports: number;
+  resolvedReports: number;
+  criticalReports: number;
+  resolutionRate: number;
+}
+
+export interface WeeklyTrendItem {
+  day: string;
+  date: string;
+  incoming: number;
+  resolved: number;
+}
+
+export interface WasteCompositionItem {
+  category: WasteCategory;
+  label: string;
+  count: number;
+  percentage: number;
+  color: string;
+}
+
+export interface EcologicalImpactMetrics {
+  co2ReducedTon: number;
+  landfillDiversionRate: number;
+  oceanPlasticPreventedKg: number;
+  compostProducedKg: number;
+  meanResolutionTimeHours: number;
+}
+
+export interface RecurringHotspotAlert {
+  location: string;
+  kabupaten: string;
+  frequency: string;
+  triggerCause: string;
+  aiMitigation: string;
+}
+
+export interface DashboardStatsData {
+  totalReports: number;
+  resolvedRate: number;
+  statusCounts: {
+    reported: number;
+    verified: number;
+    in_progress: number;
+    resolved: number;
+  };
+  severityCounts: {
+    low: number;
+    medium: number;
+    high: number;
+    critical: number;
+  };
+  categoryCounts: Record<string, number>;
+  composition: WasteCompositionItem[];
+  regencyStats: RegencyStatsItem[];
+  weeklyTrends: WeeklyTrendItem[];
+  impactMetrics: EcologicalImpactMetrics;
+  recurringHotspots: RecurringHotspotAlert[];
+}
