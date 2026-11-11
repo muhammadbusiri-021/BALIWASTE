@@ -35,7 +35,7 @@ export default function ExecutiveKpiCards({ stats }: ExecutiveKpiCardsProps) {
         </p>
         <p className="text-[11px] text-[#52604d] mt-1 flex items-center gap-1">
           <span className="text-[#266210] font-bold">100% Real-time</span>
-          <span>dari 9 Kabupaten se-Bali</span>
+          <span>dari 4 Kabupaten se-Madura</span>
         </p>
       </div>
 
@@ -86,7 +86,7 @@ export default function ExecutiveKpiCards({ stats }: ExecutiveKpiCardsProps) {
           {impactMetrics.landfillDiversionRate}%
         </p>
         <p className="text-[11px] text-[#52604d] mt-1">
-          Kepatuhan Pergub Bali No. 47/2019
+          Kepatuhan Regulasi Persampahan Madura
         </p>
       </div>
 

@@ -21,74 +21,74 @@ export default function BaliRegulationsGuide() {
         </span>
         <div>
           <h2 className="text-lg sm:text-xl font-black text-[#15370d]">
-            Landasan Hukum &amp; Regulasi Pengelolaan Sampah Bali
+            Landasan Hukum &amp; Regulasi Pengelolaan Sampah Pulau Madura
           </h2>
           <p className="text-xs text-[#52604d]">
-            Setiap rekomendasi penanganan AI BALIWASTE diselaraskan dengan peraturan gubernur dan kearifan lokal desa adat
+            Setiap rekomendasi penanganan AI MADURAWASTE diselaraskan dengan peraturan daerah 4 kabupaten dan program TPS3R Jawa Timur
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs sm:text-sm">
-        {/* Card Pergub 97/2018 */}
+        {/* Card Perda Bangkalan & Sampang */}
         <div className="rounded-xl border border-[#e2e7df] bg-[#f5f7f4] p-5 space-y-3">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="px-2.5 py-1 rounded-md bg-[#266210] text-white font-bold text-xs">
-              Pergub Bali No. 97 / 2018
+              Perda Kab. Bangkalan No. 5 / 2016
             </span>
             <span className="text-xs font-bold text-[#15370d]">
-              Pembatasan Plastik Sekali Pakai
+              &amp; Perda Kab. Sampang No. 2 / 2014
             </span>
           </div>
 
           <p className="text-[#52604d] leading-relaxed text-xs">
-            Peraturan Gubernur yang melarang peredaran dan penggunaan 3 jenis plastik sekali pakai di seluruh kawasan Pulau Bali: kantong plastik kresek, styrofoam, dan sedotan plastik.
+            Regulasi perlindungan kawasan pesisir, muara, dan aliran sungai (termasuk kawasan vital Kali Kemuning &amp; koridor Jembatan Suramadu) dari timbulan sampah liar dan pembuangan anorganik ilegal.
           </p>
 
           <div className="space-y-2 pt-2 border-t border-[#d1d8cd]">
             <p className="font-bold text-[#15370d] text-xs">
-              Implementasi pada AI BALIWASTE:
+              Implementasi pada AI MADURAWASTE:
             </p>
             <ul className="space-y-1.5 text-xs text-[#141b12]">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-3.5 w-3.5 text-[#266210] flex-shrink-0 mt-0.5" />
-                <span>Deteksi otomatis botol PET, sedotan, kresek, dan styrofoam sebagai kategori anorganik terlarang.</span>
+                <span>Deteksi otomatis sumbatan jaring trash barrier sungai dan pesisir untuk mencegah luapan banjir pasang.</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-3.5 w-3.5 text-[#266210] flex-shrink-0 mt-0.5" />
-                <span>Disposisi penanganan langsung ke Bank Sampah Unit dan mitra daur ulang untuk menekan masuknya plastik ke TPA.</span>
+                <span>Disposisi penanganan darurat langsung ke Satgas DLH Bangkalan &amp; Tim TRC PUPR Sampang.</span>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Card Pergub 47/2019 */}
+        {/* Card Perda Pamekasan & Sumenep */}
         <div className="rounded-xl border border-[#e2e7df] bg-[#f5f7f4] p-5 space-y-3">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="px-2.5 py-1 rounded-md bg-[#15370d] text-white font-bold text-xs">
-              Pergub Bali No. 47 / 2019
+              Perda Kab. Pamekasan No. 3 / 2019
             </span>
             <span className="text-xs font-bold text-[#15370d]">
-              Pengelolaan Berbasis Sumber
+              &amp; Perda Kab. Sumenep No. 6 / 2015
             </span>
           </div>
 
           <p className="text-[#52604d] leading-relaxed text-xs">
-            Mandat pengelolaan sampah berbasis sumber di tingkat rumah tangga, desa dinas, dan desa adat (Banjar) melalui operasional fasilitas Tempat Pengolahan Sampah Reuse-Reduce-Recycle (TPS3R).
+            Mandat pengelolaan sampah berbasis sumber di tingkat pasar rakyat, desa pesisir, dan dermaga penyeberangan pulau melalui operasional fasilitas Tempat Pengolahan Sampah Reuse-Reduce-Recycle (TPS3R).
           </p>
 
           <div className="space-y-2 pt-2 border-t border-[#d1d8cd]">
             <p className="font-bold text-[#15370d] text-xs">
-              Implementasi pada AI BALIWASTE:
+              Implementasi pada AI MADURAWASTE:
             </p>
             <ul className="space-y-1.5 text-xs text-[#141b12]">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-3.5 w-3.5 text-[#266210] flex-shrink-0 mt-0.5" />
-                <span>Rekomendasi alokasi sampah organik sisa upacara/pasar langsung ke fasilitas komposter dan budidaya maggot BSF TPS3R terdekat.</span>
+                <span>Rekomendasi alokasi sampah organik pasar (Kolpajung &amp; Anom Baru) langsung ke fasilitas komposter dan budidaya maggot BSF.</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-3.5 w-3.5 text-[#266210] flex-shrink-0 mt-0.5" />
-                <span>Integrasi peran Pecalang dan Prajuru Desa Adat dalam pengawasan serta sosialisasi jadwal pembuangan sampah terpilah.</span>
+                <span>Pengelolaan terpilah residu plastik pelabuhan antarpulau Kalianget dan sentra perikanan PPI Branta.</span>
               </li>
             </ul>
           </div>

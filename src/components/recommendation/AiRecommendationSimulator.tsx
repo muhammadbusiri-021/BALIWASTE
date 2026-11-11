@@ -33,44 +33,44 @@ interface PresetScenario {
 
 const PRESET_SCENARIOS: PresetScenario[] = [
   {
-    id: "kuta-beach",
-    name: "Akumulasi Plastik Kiriman Ombak Pantai Kuta",
-    location: "Pantai Kuta, Kelurahan Kuta, Kabupaten Badung",
+    id: "suramadu-pesisir",
+    name: "Akumulasi Plastik Pesisir Jembatan Suramadu",
+    location: "Pesisir Selat Madura, Desa Sukolilo Barat, Kec. Labang, Kab. Bangkalan",
     wasteType: "anorganik_plastik",
     severity: "critical",
-    description: "Timbulan botol PET dan kresek plastik kiriman barat menumpuk sepanjang 1.5 km bibir pantai jelang pasang air laut.",
+    description: "Timbulan botol PET dan kresek plastik kiriman arus laut menumpuk sepanjang 1 km bibir pantai kaki Suramadu.",
   },
   {
-    id: "tukad-badung",
-    name: "Penyumbatan Trash Barrier Sungai Tukad Badung",
-    location: "Sekat Apung Pasar Kumbasari, Kota Denpasar",
+    id: "kali-kemuning",
+    name: "Penyumbatan Trash Barrier Sungai Kali Kemuning",
+    location: "Sekat Apung Kali Kemuning, Kec. Sampang Kota, Kab. Sampang",
     wasteType: "anorganik_plastik",
     severity: "critical",
-    description: "Sampah kemasan styrofoam dan plastik menyumbat jaring penyekat sungai, berpotensi memicu banjir saat curah hujan tinggi.",
+    description: "Batang kayu, styrofoam, dan kantong kresek menyumbat sekat jaring sungai rawan luapan banjir perkotaan Sampang.",
   },
   {
-    id: "pasar-ubud",
-    name: "Limbah Organik Upacara & Sayur Pasar Seni Ubud",
-    location: "TPS3R Desa Adat Ubud, Kabupaten Gianyar",
+    id: "pasar-kolpajung",
+    name: "Limbah Organik Sayur & Karton Pasar Kolpajung",
+    location: "Sentra Pasar Kolpajung, Kec. Pamekasan, Kab. Pamekasan",
     wasteType: "organik",
-    severity: "medium",
-    description: "Sisa canang sari, janur banten, dan dedaunan menumpuk setelah hari raya keagamaan, memerlukan pencacahan komposting.",
-  },
-  {
-    id: "lovina-b3",
-    name: "Ceceran Jeriken Oli & Kaleng Cat Nelayan Lovina",
-    location: "Pesisir Pantai Lovina, Kabupaten Buleleng",
-    wasteType: "b3_berbahaya",
     severity: "high",
-    description: "Limbah B3 oli pelumas perahu nelayan tergeletak dekat air laut, membahayakan ekosistem terumbu karang dan lumba-lumba.",
+    description: "Sisa sayuran lapak basah dan dedaunan menumpuk pasca jam grosir, membutuhkan pencacahan dan komposting TPS3R.",
   },
   {
-    id: "kelingking-nusa",
-    name: "Tumpukan Botol Kemasan di Jalur Tebing Kelingking",
-    location: "Kelingking Beach, Nusa Penida, Kabupaten Klungkung",
+    id: "pelabuhan-branta",
+    name: "Ceceran Jeriken Oli Pelumas di Dermaga PPI Branta",
+    location: "Pelabuhan Pendaratan Ikan Branta Pesisir, Kec. Tlanakan, Kab. Pamekasan",
+    wasteType: "b3_berbahaya",
+    severity: "critical",
+    description: "Limbah B3 jeriken oli mesin perahu dan sisa cat tergeletak di dermaga, berisiko mencemari ekosistem laut perikanan.",
+  },
+  {
+    id: "pelabuhan-kalianget",
+    name: "Timbulan Plastik & Logistik di Pelabuhan Kalianget",
+    location: "Dermaga Penyeberangan Kalianget, Kec. Kalianget, Kab. Sumenep",
     wasteType: "anorganik_plastik",
     severity: "high",
-    description: "Botol air mineral ditinggalkan wisatawan di lereng tangga curam jurang tebing, memerlukan operasi pembersihan tali vertikal.",
+    description: "Botol air kemasan dan kardus kargo kiriman antarpulau menumpuk di area tunggu terminal penyeberangan kepulauan.",
   },
 ];
 
@@ -78,9 +78,9 @@ export default function AiRecommendationSimulator() {
   const [selectedPreset, setSelectedPreset] = useState<string>("");
   const [wasteType, setWasteType] = useState<string>("anorganik_plastik");
   const [severity, setSeverity] = useState<"critical" | "high" | "medium" | "low">("high");
-  const [address, setAddress] = useState<string>("Pantai Kuta, Badung, Bali");
+  const [address, setAddress] = useState<string>("Pesisir Labang, Kabupaten Bangkalan, Madura");
   const [notes, setNotes] = useState<string>(
-    "Akumulasi sampah plastik botol dan kresek di pesisir pantai menjelang musim hujan."
+    "Akumulasi sampah botol plastik dan kresek di pesisir bawah Jembatan Suramadu."
   );
 
   const [loading, setLoading] = useState(false);

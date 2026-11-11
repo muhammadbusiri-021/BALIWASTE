@@ -100,7 +100,7 @@ export default function RekomendasiPage() {
             </h1>
             <p className="mt-1.5 text-xs sm:text-sm text-[#52604d] max-w-2xl leading-relaxed">
               Sistem rekomendasi berbasis Artificial Intelligence untuk menentukan skala prioritas,
-              metode penanganan taktis, alokasi armada kebersihan, dan pemantauan tindak lanjut lapangan di seluruh Bali.
+              metode penanganan taktis, alokasi armada kebersihan, dan pemantauan tindak lanjut lapangan di seluruh Pulau Madura.
             </p>
           </div>
 
@@ -134,7 +134,7 @@ export default function RekomendasiPage() {
             </div>
             <p className="text-2xl font-black text-[#15370d]">{stats.total}</p>
             <p className="text-[11px] text-[#52604d] mt-0.5">
-              Tersebar di 9 Kabupaten / Kota
+              Tersebar di 4 Kabupaten (Bangkalan, Sampang, Pamekasan, Sumenep)
             </p>
           </div>
 

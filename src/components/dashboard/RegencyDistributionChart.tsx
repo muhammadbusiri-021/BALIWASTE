@@ -19,7 +19,7 @@ export default function RegencyDistributionChart({
         <div>
           <h3 className="text-base font-bold text-[#15370d] flex items-center gap-2">
             <Building2 className="h-4 w-4 text-[#266210]" />
-            <span>Sebaran Penanganan Sampah 9 Kabupaten / Kota Bali</span>
+            <span>Sebaran Penanganan Sampah 4 Kabupaten Pulau Madura</span>
           </h3>
           <p className="text-xs text-[#52604d] mt-0.5">
             Komparasi volume timbulan sampah dan efektivitas resolusi lapangan per wilayah

@@ -71,13 +71,13 @@ export default function DashboardPage() {
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#edf1eb] border border-[#d1d8cd] text-xs font-bold text-[#15370d] mb-2.5">
               <BarChart3 className="h-3.5 w-3.5 text-[#266210]" />
-              <span>Bali Smart Society Environmental Intelligence</span>
+              <span>Madura Smart Society Environmental Intelligence</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-[#15370d] tracking-tight">
               Environmental Impact Dashboard
             </h1>
             <p className="mt-1.5 text-xs sm:text-sm text-[#52604d] max-w-2xl leading-relaxed">
-              Statistik kondisi persampahan, efektivitas penanganan dinas, metrik dampak ekologis, dan analitik prediktif berbasis regulasi Provinsi Bali.
+              Statistik kondisi persampahan, efektivitas penanganan dinas, metrik dampak ekologis, dan analitik prediktif berbasis regulasi persampahan 4 Kabupaten Pulau Madura.
             </p>
           </div>
 

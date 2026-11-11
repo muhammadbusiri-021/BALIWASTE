@@ -409,7 +409,7 @@ export default function BaliHotspotMap({
                   ${singlePoint.title}
                 </p>
                 <p style="font-size: 11px; color: #52604d; margin: 0 0 8px 0; line-height: 1.3;">
-                  ${singlePoint.address || "Pulau Bali"}
+                  ${singlePoint.address || "Pulau Madura"}
                 </p>
                 <button id="btn-popup-${singlePoint.id}" style="
                   width: 100%;

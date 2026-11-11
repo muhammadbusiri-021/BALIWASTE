@@ -13,15 +13,15 @@ import {
   RecurringHotspotAlert,
 } from "@/types";
 
-// Fallback data statistik Bali yang realistis & komprehensif
+// Fallback data statistik Pulau Madura yang realistis & komprehensif (4 Kabupaten)
 const FALLBACK_DASHBOARD_STATS: DashboardStatsData = {
   totalReports: 1482,
-  resolvedRate: 78,
+  resolvedRate: 79,
   statusCounts: {
-    reported: 142,
-    verified: 184,
-    in_progress: 310,
-    resolved: 846,
+    reported: 135,
+    verified: 172,
+    in_progress: 305,
+    resolved: 870,
   },
   severityCounts: {
     low: 320,
@@ -40,14 +40,14 @@ const FALLBACK_DASHBOARD_STATS: DashboardStatsData = {
   composition: [
     {
       category: "anorganik_plastik",
-      label: "Anorganik Plastik",
+      label: "Anorganik Plastik & Kresek",
       count: 563,
       percentage: 38,
       color: "#ea580c", // Oranye
     },
     {
       category: "organik",
-      label: "Organik & Banten Upacara",
+      label: "Organik Pasar & Pertanian",
       count: 474,
       percentage: 32,
       color: "#16a34a", // Hijau
@@ -75,7 +75,7 @@ const FALLBACK_DASHBOARD_STATS: DashboardStatsData = {
     },
     {
       category: "b3_berbahaya",
-      label: "Limbah Berbahaya B3",
+      label: "Limbah Berbahaya B3 / Oli",
       count: 60,
       percentage: 4,
       color: "#dc2626", // Merah
@@ -83,66 +83,31 @@ const FALLBACK_DASHBOARD_STATS: DashboardStatsData = {
   ],
   regencyStats: [
     {
-      kabupaten: "Kota Denpasar",
-      totalReports: 365,
-      resolvedReports: 295,
-      criticalReports: 42,
-      resolutionRate: 81,
-    },
-    {
-      kabupaten: "Kabupaten Badung",
-      totalReports: 340,
-      resolvedReports: 275,
+      kabupaten: "Kabupaten Bangkalan",
+      totalReports: 420,
+      resolvedReports: 336,
       criticalReports: 38,
       resolutionRate: 80,
     },
     {
-      kabupaten: "Kabupaten Gianyar",
-      totalReports: 215,
-      resolvedReports: 172,
-      criticalReports: 18,
+      kabupaten: "Kabupaten Sampang",
+      totalReports: 360,
+      resolvedReports: 288,
+      criticalReports: 42,
       resolutionRate: 80,
     },
     {
-      kabupaten: "Kabupaten Buleleng",
-      totalReports: 155,
-      resolvedReports: 116,
-      criticalReports: 12,
-      resolutionRate: 75,
+      kabupaten: "Kabupaten Pamekasan",
+      totalReports: 385,
+      resolvedReports: 312,
+      criticalReports: 32,
+      resolutionRate: 81,
     },
     {
-      kabupaten: "Kabupaten Tabanan",
-      totalReports: 130,
-      resolvedReports: 98,
-      criticalReports: 9,
-      resolutionRate: 75,
-    },
-    {
-      kabupaten: "Kabupaten Karangasem",
-      totalReports: 85,
-      resolvedReports: 62,
-      criticalReports: 5,
-      resolutionRate: 73,
-    },
-    {
-      kabupaten: "Kabupaten Klungkung",
-      totalReports: 82,
-      resolvedReports: 61,
-      criticalReports: 4,
-      resolutionRate: 74,
-    },
-    {
-      kabupaten: "Kabupaten Jembrana",
-      totalReports: 60,
-      resolvedReports: 45,
-      criticalReports: 3,
-      resolutionRate: 75,
-    },
-    {
-      kabupaten: "Kabupaten Bangli",
-      totalReports: 50,
-      resolvedReports: 38,
-      criticalReports: 1,
+      kabupaten: "Kabupaten Sumenep",
+      totalReports: 317,
+      resolvedReports: 242,
+      criticalReports: 20,
       resolutionRate: 76,
     },
   ],
@@ -156,40 +121,40 @@ const FALLBACK_DASHBOARD_STATS: DashboardStatsData = {
     { day: "Minggu", date: "08 Nov", incoming: 62, resolved: 59 },
   ],
   impactMetrics: {
-    co2ReducedTon: 18.4,
-    landfillDiversionRate: 64.2,
-    oceanPlasticPreventedKg: 3420,
-    compostProducedKg: 7850,
-    meanResolutionTimeHours: 4.5,
+    co2ReducedTon: 19.2,
+    landfillDiversionRate: 66.4,
+    oceanPlasticPreventedKg: 3850,
+    compostProducedKg: 8200,
+    meanResolutionTimeHours: 4.2,
   },
   recurringHotspots: [
     {
-      location: "Garis Pantai Kuta & Legian",
-      kabupaten: "Kabupaten Badung",
-      frequency: "Musiman (Angin Barat / Penghujan)",
-      triggerCause: "Sampah plastik kiriman arus laut barat dan saluran Tukad Mati.",
-      aiMitigation: "Pemasangan trash barrier muara dan aktivasi tim beach cleaner harian sebelum fajar.",
+      location: "Pesisir Bawah Jembatan Suramadu (Labang)",
+      kabupaten: "Kabupaten Bangkalan",
+      frequency: "Musiman & Pasang Surut Laut",
+      triggerCause: "Sampah plastik kiriman arus Selat Madura dan aktivitas tepi jembatan.",
+      aiMitigation: "Penyisiran harian tim satgas pesisir DLH Bangkalan dan pemasangan jaring penahan sampah.",
     },
     {
-      location: "Sekat Apung Pasar Kumbasari (Tukad Badung)",
-      kabupaten: "Kota Denpasar",
+      location: "Sekat Apung Trash Barrier Kali Kemuning",
+      kabupaten: "Kabupaten Sampang",
       frequency: "Pasca Hujan Intensitas Tinggi",
-      triggerCause: "Sumbatan styrofoam, kresek, dan ranting kayu di trash barrier sungai.",
-      aiMitigation: "Pengoperasian perahu pembersih sungai Dinas PUPR dan penyisiran hulu.",
+      triggerCause: "Sumbatan styrofoam, ranting kayu, dan kresek di trash barrier sungai rawan banjir.",
+      aiMitigation: "Pengoperasian perahu pembersih sungai Dinas PUPR & pengerukan mekanis berkala.",
     },
     {
-      location: "Lereng Gardu Pandang Penelokan",
-      kabupaten: "Kabupaten Bangli",
-      frequency: "Akhir Pekan & Hari Libur",
-      triggerCause: "Timbulan kemasan cup kopi sekali pakai dari kafe wisata kaldera.",
-      aiMitigation: "Penegakan aturan Pergub 97/2018 untuk transisi reusable cup bagi asosiasi kafe.",
+      location: "Sentra Pasar Tradisional Kolpajung",
+      kabupaten: "Kabupaten Pamekasan",
+      frequency: "Harian (Pasca Jam Grosir Pagi)",
+      triggerCause: "Timbulan sisa sayur hijau, kardus basah, dan limbah lapak pedagang.",
+      aiMitigation: "Pemberdayaan TPS3R Kolpajung untuk komposting dan pencacahan pakan maggot BSF.",
     },
     {
-      location: "Pintu Masuk Pelabuhan Gilimanuk",
-      kabupaten: "Kabupaten Jembrana",
-      frequency: "Harian (Lonjakan Logistik Truk)",
-      triggerCause: "Kawat pengikat muatan dan potongan seng tercecer di area parkir.",
-      aiMitigation: "Penyisiran menggunakan sapu magnetik reguler bersama ASDP Ferry.",
+      location: "Kawasan Dermaga Penyeberangan Kalianget",
+      kabupaten: "Kabupaten Sumenep",
+      frequency: "Jadwal Keberangkatan Kapal Penyeberangan",
+      triggerCause: "Sampah botol kemasan, sisa bekal penumpang kapal antarpulau, dan kargo logistik.",
+      aiMitigation: "Penyediaan kontainer tertutup di gerbang dermaga dan pengangkutan harian DLH Sumenep.",
     },
   ],
 };
@@ -201,7 +166,7 @@ export async function GET(req: NextRequest) {
     try {
       reports = await db.select().from(wasteReports);
     } catch (dbErr) {
-      console.warn("Database tidak tersedia, beralih ke dataset environmental Bali:", dbErr);
+      console.warn("Database tidak tersedia, beralih ke dataset environmental Madura:", dbErr);
     }
 
     // Jika database memiliki data nyata, kita bisa menggabungkan atau menghitung secara dinamis
@@ -256,11 +221,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(response);
     }
 
-    // Jika database kosong atau offline, kirim dataset komprehensif Bali
+    // Jika database kosong atau offline, kirim dataset komprehensif Madura
     const response: ApiResponse<DashboardStatsData> = {
       success: true,
       data: FALLBACK_DASHBOARD_STATS,
-      message: "Menggunakan agregasi statistik persebaran lingkungan wilayah Bali",
+      message: "Menggunakan agregasi statistik persebaran lingkungan wilayah Pulau Madura",
       error: null,
     };
 
@@ -270,7 +235,7 @@ export async function GET(req: NextRequest) {
     const response: ApiResponse<DashboardStatsData> = {
       success: true,
       data: FALLBACK_DASHBOARD_STATS,
-      message: "Cadangan data statistik lingkungan Provinsi Bali",
+      message: "Cadangan data statistik lingkungan Pulau Madura",
       error: null,
     };
     return NextResponse.json(response, { status: 200 });

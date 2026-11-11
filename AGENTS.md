@@ -10,9 +10,9 @@
 
 | Field | Value |
 |---|---|
-| **Nama Produk** | BALIWASTE (Bali Waste Intelligence System) |
+| **Nama Produk** | MADURAWASTE (Madura Waste Intelligence System) |
 | **Kompetisi** | Bali DigiFest 2026 — AI Web Innovation Challenge |
-| **Tema** | BUILD WITH AI, SOLVE FOR BALI |
+| **Tema** | BUILD WITH AI, SOLVE FOR MADURA |
 | **Area** | Bali Smart Society — Lingkungan / Pengelolaan Sampah |
 | **Repo** | https://github.com/muhammadbusiri-021/BALIWASTE.git |
 | **Branch Utama** | `main` |
@@ -588,7 +588,15 @@ npm run lint
   - Fitur 2: Waste Hotspot Mapping (`/hotspot`) ✅ Selesai & Teruji
   - Fitur 3: Smart Waste Handling Recommendation (`/rekomendasi`) ✅ Selesai & Teruji
   - Fitur 4: Environmental Impact Dashboard (`/dashboard`) ✅ Selesai & Teruji
-- **[2026-11-08]** **TARGET BERIKUTNYA:** Persiapan submission kompetisi Bali DigiFest 2026 — verifikasi akhir akun juri, tagging versi git `v1.0-submission`, dan kesiapan deployment Vercel.
+- **[2026-11-08]** **TARGET AWAL:** Persiapan submission kompetisi — verifikasi akun juri, tagging versi git `v1.0-submission`, dan kesiapan deployment.
+- **[2026-11-12]** **PIVOT REGIONAL MADURAWASTE TUNTAS 100%:**
+  1. Atas kesepakatan user dan rekan tim (Zain), produk dialihkan dari Pulau Bali ke **Pulau Madura** (mencakup 4 Kabupaten: **Bangkalan, Sampang, Pamekasan, dan Sumenep**).
+  2. Seluruh 4 Fitur Inti (Pelaporan Sampah, Waste Hotspot Mapping, Smart Waste Handling Recommendation, dan Environmental Impact Dashboard) telah disesuaikan secara menyeluruh ke wilayah Madura.
+  3. Geo-coordinates & Boundaries diperbarui ke Pulau Madura (`MADURA_BOUNDS`: `[[-7.40, 112.50], [-6.75, 114.35]]`, `MADURA_CENTER`: `[-7.08, 113.35]`), mencakup 35+ Kecamatan dan 21+ Desa/kawasan strategis di 4 Kabupaten.
+  4. Dataset Fallback diperbarui dengan 12 titik hotspot nyata (Pesisir Suramadu Labang, Pelabuhan Kamal, Kali Kemuning Sampang, Pantai Camplong, Air Terjun Toroan, Pasar Kolpajung Pamekasan, PPI Branta Pesisir, Pantai Jumiang, Pelabuhan Kalianget, Pantai Lombang, Pantai Slopeng, Pasar Anom Baru).
+  5. Regulasi & Disposisi diselaraskan dengan Perda Persampahan 4 Kabupaten (Bangkalan No 5/2016, Sampang No 2/2014, Pamekasan No 3/2019, Sumenep No 6/2015) serta prompt Gemini AI.
+  6. Portal login `/login` telah dibuat khusus untuk akses akun juri/petugas.
+  7. Verifikasi kompilasi `npm run build` berhasil 100% (exit code 0, 17/17 rute lulus type check).
 
 ---
 

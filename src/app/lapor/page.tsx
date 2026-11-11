@@ -40,7 +40,7 @@ const BaliLocationPicker = dynamic(
     loading: () => (
       <div className="h-64 sm:h-72 w-full rounded-xl bg-[#edf1eb] animate-pulse flex flex-col items-center justify-center gap-2 text-xs text-[#52604d] border border-[#d1d8cd]">
         <Loader2 className="h-5 w-5 animate-spin text-[#266210]" />
-        <span>Memuat Peta Pulau Bali...</span>
+        <span>Memuat Peta Pulau Madura...</span>
       </div>
     ),
   }
@@ -70,58 +70,35 @@ type RecommendationResult = {
 
 type Step = "capture" | "analyze" | "form" | "success";
 
-/* ─────────────────────── preset koordinat 9 wilayah bali ─────────────────────── */
+/* ─────────────────────── preset koordinat 4 kabupaten madura ─────────────────────── */
 
-const BALI_REGION_PRESETS: Record<
+const MADURA_REGION_PRESETS: Record<
   string,
   { lat: number; lng: number; defaultAddress: string }
 > = {
-  "Kota Denpasar": {
-    lat: -8.6705,
-    lng: 115.2126,
-    defaultAddress: "Kota Denpasar, Bali",
+  "Bangkalan (Kota / Kamal / Suramadu)": {
+    lat: -7.0315,
+    lng: 112.7485,
+    defaultAddress: "Kecamatan Bangkalan, Kabupaten Bangkalan, Madura",
   },
-  "Badung (Kuta / Seminyak / Canggu)": {
-    lat: -8.7185,
-    lng: 115.1686,
-    defaultAddress: "Kuta, Kabupaten Badung, Bali",
+  "Sampang (Kota / Camplong / Torjun)": {
+    lat: -7.1865,
+    lng: 113.2420,
+    defaultAddress: "Kecamatan Sampang Kota, Kabupaten Sampang, Madura",
   },
-  "Gianyar (Ubud / Sukawati)": {
-    lat: -8.5069,
-    lng: 115.2625,
-    defaultAddress: "Ubud, Kabupaten Gianyar, Bali",
+  "Pamekasan (Kota / Kolpajung / Branta)": {
+    lat: -7.1585,
+    lng: 113.4735,
+    defaultAddress: "Kecamatan Pamekasan, Kabupaten Pamekasan, Madura",
   },
-  "Tabanan (Bedugul / Tanah Lot)": {
-    lat: -8.5392,
-    lng: 115.1235,
-    defaultAddress: "Kabupaten Tabanan, Bali",
-  },
-  "Buleleng (Singaraja / Lovina)": {
-    lat: -8.112,
-    lng: 115.0882,
-    defaultAddress: "Singaraja, Kabupaten Buleleng, Bali",
-  },
-  "Karangasem (Amlapura)": {
-    lat: -8.4539,
-    lng: 115.612,
-    defaultAddress: "Kabupaten Karangasem, Bali",
-  },
-  "Klungkung (Semarapura / Nusa Penida)": {
-    lat: -8.5372,
-    lng: 115.4042,
-    defaultAddress: "Kabupaten Klungkung, Bali",
-  },
-  "Bangli (Kintamani)": {
-    lat: -8.4543,
-    lng: 115.3551,
-    defaultAddress: "Kabupaten Bangli, Bali",
-  },
-  "Jembrana (Negara)": {
-    lat: -8.3585,
-    lng: 114.6295,
-    defaultAddress: "Negara, Kabupaten Jembrana, Bali",
+  "Sumenep (Kota / Kalianget / Lombang)": {
+    lat: -7.0120,
+    lng: 113.8610,
+    defaultAddress: "Kecamatan Kota Sumenep, Kabupaten Sumenep, Madura",
   },
 };
+
+const BALI_REGION_PRESETS = MADURA_REGION_PRESETS;
 
 const SEVERITY_LABELS: Record<string, string> = {
   low: "Rendah",
@@ -191,9 +168,9 @@ export default function LaporPage() {
   /* ─── form fields ─── */
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [address, setAddress] = useState("Kota Denpasar, Bali");
-  const [latitude, setLatitude] = useState<number | null>(-8.6705); // Default Kota Denpasar, Bali
-  const [longitude, setLongitude] = useState<number | null>(115.2126);
+  const [address, setAddress] = useState("Kabupaten Bangkalan, Madura");
+  const [latitude, setLatitude] = useState<number | null>(-7.0315); // Default Bangkalan, Madura
+  const [longitude, setLongitude] = useState<number | null>(112.7485);
 
   /* ─── location helper states ─── */
   const [locationLoading, setLocationLoading] = useState(false);
@@ -518,7 +495,7 @@ export default function LaporPage() {
     }
   }, []);
 
-  // Update lokasi saat pengguna mengklik atau menggeser pin di peta Pulau Bali
+  // Update lokasi saat pengguna mengklik atau menggeser pin di peta Pulau Madura
   const handleMapLocationChange = useCallback(
     (lat: number, lng: number) => {
       if (isLocationInBali(lat, lng)) {
@@ -527,19 +504,19 @@ export default function LaporPage() {
         setOutsideBaliNotice(null);
         setLocationError(null);
         setLocationSuccessMsg(
-          `Titik lokasi diatur di Pulau Bali (${lat.toFixed(4)}, ${lng.toFixed(4)}).`
+          `Titik lokasi diatur di Pulau Madura (${lat.toFixed(4)}, ${lng.toFixed(4)}).`
         );
         reverseGeocode(lat, lng);
       } else {
         setLocationError(
-          "Titik yang Anda pilih berada di luar wilayah Pulau Bali. Silakan klik area di dalam Pulau Bali."
+          "Titik yang Anda pilih berada di luar wilayah Pulau Madura. Silakan klik area di dalam Pulau Madura."
         );
       }
     },
     [reverseGeocode]
   );
 
-  // Deteksi GPS Browser dengan Validasi Ketat Pulau Bali
+  // Deteksi GPS Browser dengan Validasi Ketat Pulau Madura
   const getLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setLocationError("Geolocation tidak didukung oleh browser ini.");
@@ -559,14 +536,14 @@ export default function LaporPage() {
         const lng = Number(rawLng.toFixed(6));
         setLocationLoading(false);
 
-        // CEK APAKAH BENAR-BENAR BERADA DI DALAM PULAU BALI
+        // CEK APAKAH BENAR-BENAR BERADA DI DALAM PULAU MADURA
         if (isLocationInBali(lat, lng)) {
           setLatitude(lat);
           setLongitude(lng);
-          setLocationSuccessMsg("Koordinat GPS Anda di Pulau Bali berhasil dideteksi.");
+          setLocationSuccessMsg("Koordinat GPS Anda di Pulau Madura berhasil dideteksi.");
           reverseGeocode(lat, lng);
         } else {
-          // LOKASI TERDETEKSI DI LUAR BALI (misal IP ISP di Jawa/Surabaya/Jakarta)
+          // LOKASI TERDETEKSI DI LUAR MADURA (misal IP ISP di Surabaya/Jakarta)
           fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=id`
           )
@@ -576,29 +553,29 @@ export default function LaporPage() {
                 data?.address?.city ||
                 data?.address?.county ||
                 data?.address?.state ||
-                "Luar Bali";
+                "Luar Madura";
               setOutsideBaliNotice(
-                `Perangkat Anda terdeteksi berada di ${regionName} (di luar Pulau Bali). Karena sistem BALIWASTE dikhususkan untuk Pulau Bali, lokasi Anda diarahkan ke wilayah Bali. Silakan klik titik manapun pada peta Bali di bawah ini atau pilih wilayah yang sesuai.`
+                `Perangkat Anda terdeteksi berada di ${regionName} (di luar Pulau Madura). Karena sistem MADURAWASTE dikhususkan untuk Pulau Madura, lokasi Anda diarahkan ke wilayah Madura. Silakan klik titik manapun pada peta Madura di bawah ini atau pilih wilayah yang sesuai.`
               );
             })
             .catch(() => {
               setOutsideBaliNotice(
-                "Perangkat Anda terdeteksi berada di luar Pulau Bali. Karena sistem BALIWASTE dikhususkan untuk Pulau Bali, silakan klik titik pada peta Bali di bawah atau pilih wilayah Bali yang sesuai."
+                "Perangkat Anda terdeteksi berada di luar Pulau Madura. Karena sistem MADURAWASTE dikhususkan untuk Pulau Madura, silakan klik titik pada peta Madura di bawah atau pilih wilayah Madura yang sesuai."
               );
             });
 
-          // Otomatis arahkan ke pusat Bali (Kota Denpasar)
-          setLatitude(-8.6705);
-          setLongitude(115.2126);
-          setAddress("Kota Denpasar, Bali");
+          // Otomatis arahkan ke pusat Madura (Bangkalan)
+          setLatitude(-7.0315);
+          setLongitude(112.7485);
+          setAddress("Kabupaten Bangkalan, Madura");
         }
       },
       (err) => {
         setLocationLoading(false);
         const msg =
           err.code === 1
-            ? "Izin akses lokasi ditolak oleh browser. Anda dapat langsung mengklik titik di peta Pulau Bali atau memilih wilayah di bawah."
-            : "Gagal mendeteksi sinyal GPS. Silakan tentukan lokasi dengan mengklik peta Pulau Bali di bawah.";
+            ? "Izin akses lokasi ditolak oleh browser. Anda dapat langsung mengklik titik di peta Pulau Madura atau memilih wilayah di bawah."
+            : "Gagal mendeteksi sinyal GPS. Silakan tentukan lokasi dengan mengklik peta Pulau Madura di bawah.";
         setLocationError(msg);
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
@@ -628,13 +605,13 @@ export default function LaporPage() {
     setOutsideBaliNotice(null);
 
     try {
-      const queryText = searchQuery.toLowerCase().includes("bali")
+      const queryText = searchQuery.toLowerCase().includes("madura")
         ? searchQuery
-        : `${searchQuery}, Bali, Indonesia`;
+        : `${searchQuery}, Madura, Jawa Timur, Indonesia`;
 
       const q = encodeURIComponent(queryText);
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5&accept-language=id&viewbox=114.35,-8.05,115.85,-8.95&bounded=1`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=5&accept-language=id&viewbox=112.50,-6.75,114.35,-7.40&bounded=1`
       );
       const data = await res.json();
 
@@ -652,16 +629,16 @@ export default function LaporPage() {
           setLongitude(Number(lng.toFixed(6)));
           setAddress(match.display_name);
           setLocationSuccessMsg(
-            `Lokasi ditemukan di Bali: ${match.display_name.split(",")[0]}`
+            `Lokasi ditemukan di Madura: ${match.display_name.split(",")[0]}`
           );
         } else {
           setLocationError(
-            "Tempat yang dicari berada di luar Pulau Bali. Harap cari lokasi di wilayah Bali."
+            "Tempat yang dicari berada di luar Pulau Madura. Harap cari lokasi di wilayah Madura."
           );
         }
       } else {
         setLocationError(
-          "Tempat tidak ditemukan di Bali. Coba gunakan nama tempat, pantai, atau jalan yang lebih spesifik."
+          "Tempat tidak ditemukan di Madura. Coba gunakan nama tempat, pantai, atau jalan yang lebih spesifik."
         );
       }
     } catch {
@@ -690,14 +667,14 @@ export default function LaporPage() {
     }
     if (latitude === null || longitude === null) {
       setSubmitError(
-        "Lokasi belum ditentukan. Silakan klik pada peta Bali atau pilih wilayah."
+        "Lokasi belum ditentukan. Silakan klik pada peta Madura atau pilih wilayah."
       );
       return;
     }
 
     if (!isLocationInBali(latitude, longitude)) {
       setSubmitError(
-        "Koordinat laporan berada di luar wilayah Pulau Bali. Silakan klik area di dalam Pulau Bali pada peta."
+        "Koordinat laporan berada di luar wilayah Pulau Madura. Silakan klik area di dalam Pulau Madura pada peta."
       );
       return;
     }
@@ -794,7 +771,7 @@ export default function LaporPage() {
           </h1>
           <p className="mt-2 text-sm text-[#52604d] max-w-xl mx-auto leading-relaxed">
             Ambil atau unggah foto timbulan sampah. AI akan mengidentifikasi
-            kategori jenis sampah secara otomatis dan memetakan titiknya di Pulau Bali.
+            kategori jenis sampah secara otomatis dan memetakan titiknya di Pulau Madura.
           </p>
         </div>
 
@@ -1447,10 +1424,10 @@ export default function LaporPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <label className="block text-xs font-semibold text-[#15370d]">
-                      Lokasi Sampah di Pulau Bali <span className="text-red-500">*</span>
+                      Lokasi Sampah di Pulau Madura <span className="text-red-500">*</span>
                     </label>
                     <p className="text-[11px] text-[#52604d] mt-0.5">
-                      Peta dikunci khusus Pulau Bali. Klik atau geser pin langsung pada peta.
+                      Peta dikunci khusus Pulau Madura. Klik atau geser pin langsung pada peta.
                     </p>
                   </div>
                   {latitude !== null && longitude !== null && (
@@ -1464,12 +1441,12 @@ export default function LaporPage() {
                   )}
                 </div>
 
-                {/* Warning jika perangkat user terdeteksi di luar Bali */}
+                {/* Warning jika perangkat user terdeteksi di luar Madura */}
                 {outsideBaliNotice && (
                   <div className="flex items-start gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-xs text-amber-900 shadow-sm animate-in fade-in duration-300">
                     <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-600 flex-shrink-0" />
                     <div>
-                      <p className="font-bold">Lokasi Terdeteksi di Luar Pulau Bali</p>
+                      <p className="font-bold">Lokasi Terdeteksi di Luar Pulau Madura</p>
                       <p className="mt-0.5 leading-relaxed text-amber-800">
                         {outsideBaliNotice}
                       </p>
@@ -1477,7 +1454,7 @@ export default function LaporPage() {
                   </div>
                 )}
 
-                {/* ── INTERACTIVE BALI MAP (Strictly Locked to Bali) ── */}
+                {/* ── INTERACTIVE BALI MAP (Strictly Locked to Madura) ── */}
                 <BaliLocationPicker
                   latitude={latitude}
                   longitude={longitude}
@@ -1517,7 +1494,7 @@ export default function LaporPage() {
                     )}
                   >
                     <MapPin className="h-3.5 w-3.5" />
-                    <span>9 Wilayah</span>
+                    <span>4 Kabupaten</span>
                   </button>
                   <button
                     type="button"
@@ -1536,12 +1513,12 @@ export default function LaporPage() {
                   </button>
                 </div>
 
-                {/* Sub-panel 1: Quick Bali Region Presets */}
+                {/* Sub-panel 1: Quick Madura Region Presets */}
                 {locationMode === "preset" && (
                   <div className="rounded-xl border border-[#e2e7df] bg-white p-4 space-y-2.5 animate-in fade-in duration-200">
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-semibold text-[#15370d]">
-                        Pilih Kabupaten / Kota Laporan di Bali:
+                        Pilih Kabupaten Laporan di Madura:
                       </p>
                       <button
                         type="button"
@@ -1570,12 +1547,12 @@ export default function LaporPage() {
                   </div>
                 )}
 
-                {/* Sub-panel 2: Search Specific Place in Bali */}
+                {/* Sub-panel 2: Search Specific Place in Madura */}
                 {locationMode === "search" && (
                   <div className="rounded-xl border border-[#e2e7df] bg-white p-4 space-y-3 animate-in fade-in duration-200">
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-semibold text-[#15370d]">
-                        Cari nama tempat, pantai, atau jalan di Bali:
+                        Cari nama tempat, pasar, atau jalan di Madura:
                       </p>
                       <button
                         type="button"
@@ -1596,7 +1573,7 @@ export default function LaporPage() {
                             searchLocation();
                           }
                         }}
-                        placeholder="Contoh: Pantai Sanur, Ubud, Nusa Dua, Canggu..."
+                        placeholder="Contoh: Pasar Kolpajung, Pantai Camplong, Suramadu, Kalianget..."
                         className="flex-1 rounded-xl border border-[#d1d8cd] bg-[#f5f7f4] px-3.5 py-2.5 text-xs text-[#141b12] placeholder:text-[#9ca896] focus:border-[#266210] outline-none"
                       />
                       <button
@@ -1641,7 +1618,7 @@ export default function LaporPage() {
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Contoh: Jl. Pantai Kuta No. 12, Badung, Bali (dekat pos penjaga)"
+                  placeholder="Contoh: Jl. Trunojoyo No. 12, Pamekasan, Madura (dekat pasar)"
                   className="w-full rounded-xl border border-[#d1d8cd] bg-[#f5f7f4] px-4 py-3 text-sm text-[#141b12] placeholder:text-[#9ca896] focus:border-[#266210] focus:ring-2 focus:ring-[#266210]/20 outline-none transition-colors"
                 />
               </div>
@@ -1689,7 +1666,7 @@ export default function LaporPage() {
               </h2>
               <p className="mt-2 text-sm text-[#52604d] max-w-md leading-relaxed">
                 Terima kasih atas partisipasi Anda. Laporan Anda berhasil dicatat
-                dan diteruskan untuk penanganan oleh instansi terkait di Bali.
+                dan diteruskan untuk penanganan oleh instansi terkait di Madura.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">

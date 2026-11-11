@@ -23,23 +23,23 @@ export async function classifyWasteImage(
   const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
 
   const prompt = `
-Anda adalah sistem AI Waste Classifier untuk Pulau Bali (BALIWASTE).
+Anda adalah sistem AI Waste Classifier untuk Pulau Madura (MADURAWASTE).
 Analisis foto sampah ini secara cermat dan berikan output dalam format JSON terstruktur.
 
 Kategori yang harus dipilih salah satu:
-- "organik" (sisa makanan, dedaunan, ranting, limbah upacara/banten organik)
+- "organik" (sisa makanan, dedaunan, ranting, limbah pasar sayur/pertanian)
 - "anorganik_plastik" (kantong plastik, botol plastik, kresek, bungkus sachet)
 - "anorganik_kertas" (kardus, kertas, karton)
 - "anorganik_logam" (kaleng, besi, kawat, seng)
 - "anorganik_kaca" (botol kaca, pecahan beling)
-- "b3_berbahaya" (baterai, limbah medis, kaleng pestisida, elektronik, bahan kimia)
+- "b3_berbahaya" (baterai, limbah medis, oli mesin nelayan, kaleng pestisida, elektronik, bahan kimia)
 - "campuran_tidak_teridentifikasi" (tumpukan campur aduk atau tidak jelas)
 
 Tentukan tingkat keparahan (severity):
 - "low": tumpukan kecil, tidak menyumbat jalan/selokan, tidak berbahaya
 - "medium": volume sedang di pinggir jalan / area publik
-- "high": tumpukan besar mencemari sungai, pantai, jalan raya utama, atau tumpukan liar
-- "critical": tumpukan sangat masif, memicu banjir, atau limbah berbahaya B3 dekat pemukiman/sumber air
+- "high": tumpukan besar mencemari sungai, pesisir pantai, dermaga pelabuhan, jalan raya utama, atau tumpukan liar
+- "critical": tumpukan sangat masif, memicu banjir perkotaan, atau limbah berbahaya B3 dekat pemukiman/sumber air laut
 
 Aturan confidence: nilai angka desimal antara 0.0 sampai 1.0. Jika di bawah 0.60, tandai needsVerification = true.
 `;
@@ -93,7 +93,7 @@ Aturan confidence: nilai angka desimal antara 0.0 sampai 1.0. Jika di bawah 0.60
             },
             notes: {
               type: Type.STRING,
-              description: "Catatan analisis visual mengenai kondisi sampah dan lingkungan sekitarnya di Bali",
+              description: "Catatan analisis visual mengenai kondisi sampah dan lingkungan sekitarnya di Madura",
             },
             needsVerification: {
               type: Type.BOOLEAN,
@@ -139,16 +139,16 @@ export async function generateWasteRecommendation(params: {
   const ai = getAiClient();
 
   const prompt = `
-Anda adalah sistem AI pakar pengelolaan sampah wilayah Provinsi Bali (Smart Waste Handling Engine).
+Anda adalah sistem AI pakar pengelolaan sampah wilayah Pulau Madura (MADURAWASTE - Smart Waste Handling Engine).
 Berdasarkan data laporan sampah berikut:
 - Jenis Sampah: ${params.wasteType}
 - Tingkat Keparahan: ${params.severity}
-- Alamat / Lokasi: ${params.address || "Wilayah Bali"}
+- Alamat / Lokasi: ${params.address || "Wilayah Pulau Madura"}
 - Catatan Visual: ${params.notes || "Tidak ada catatan"}
 
-Berikan rekomendasi penanganan taktis yang tepat sasaran, berbasis regulasi persampahan Bali (misal Pergub Bali No 97/2018 tentang Pembatasan Timbulan Sampah Plastik Sekali Pakai & Pergub Bali No 47/2019 tentang Pengelolaan Sampah Berbasis Sumber).
+Berikan rekomendasi penanganan taktis yang tepat sasaran, berbasis regulasi persampahan daerah di 4 Kabupaten se-Madura (Bangkalan, Sampang, Pamekasan, Sumenep) serta program TPS3R dan pelestarian lingkungan pesisir & sungai.
 
-Sebutkan instansi terkait yang berwenang (misal DLHK Kabupaten/Kota, Bank Sampah Unit, TPS3R Desa Adat/Kelurahan, Dinas PU).
+Sebutkan instansi terkait yang berwenang (misal DLH Kabupaten Bangkalan / Sampang / Pamekasan / Sumenep, Bank Sampah Unit, TPS3R Desa/Kelurahan, Dinas PUPR, atau Satpol PP).
 Berikan output JSON terstruktur.
 `;
 
@@ -175,7 +175,7 @@ Berikan output JSON terstruktur.
             },
             assignedAgency: {
               type: Type.STRING,
-              description: "Instansi atau pihak penanggung jawab (contoh: DLHK Kota Denpasar / Satgas TPS3R Desa)",
+              description: "Instansi atau pihak penanggung jawab (contoh: DLH Kabupaten Pamekasan / Satgas Kebersihan Desa)",
             },
             actionSteps: {
               type: Type.ARRAY,

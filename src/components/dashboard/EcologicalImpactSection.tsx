@@ -41,7 +41,7 @@ export default function EcologicalImpactSection({
             <span>Ecological &amp; Carbon Accounting</span>
           </div>
           <h3 className="text-xl sm:text-2xl font-black text-[#15370d] tracking-tight">
-            Dampak Pemulihan Ekosistem &amp; Lingkungan Bali
+            Dampak Pemulihan Ekosistem &amp; Lingkungan Madura
           </h3>
           <p className="text-xs sm:text-sm text-[#52604d] mt-1">
             Kuantifikasi kontribusi intervensi sistem cerdas terhadap kebersihan pesisir, perairan, dan reduksi emisi

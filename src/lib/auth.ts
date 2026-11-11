@@ -35,13 +35,15 @@ export const authOptions: NextAuthOptions = {
           if (!foundUser) {
             // Demo fallback jika database belum diseed
             if (
-              credentials.email === "juri@baliwaste.id" &&
-              credentials.password === "juriBali2026!"
+              (credentials.email === "juri@madurawaste.id" &&
+                (credentials.password === "juriMadura2026!" || credentials.password === "juriBali2026!")) ||
+              (credentials.email === "juri@baliwaste.id" &&
+                (credentials.password === "juriBali2026!" || credentials.password === "juriMadura2026!"))
             ) {
               return {
                 id: "demo-juri-id",
-                name: "Dewan Juri Bali DigiFest",
-                email: "juri@baliwaste.id",
+                name: "Dewan Juri AI Innovation",
+                email: credentials.email,
                 role: "officer",
               };
             }
@@ -65,13 +67,15 @@ export const authOptions: NextAuthOptions = {
           console.error("Auth authorization error:", error);
           // Demo fallback jika koneksi database offline/belum disetting
           if (
-            credentials.email === "juri@baliwaste.id" &&
-            credentials.password === "juriBali2026!"
+            (credentials.email === "juri@madurawaste.id" &&
+              (credentials.password === "juriMadura2026!" || credentials.password === "juriBali2026!")) ||
+            (credentials.email === "juri@baliwaste.id" &&
+              (credentials.password === "juriBali2026!" || credentials.password === "juriMadura2026!"))
           ) {
             return {
               id: "demo-juri-id",
-              name: "Dewan Juri Bali DigiFest",
-              email: "juri@baliwaste.id",
+              name: "Dewan Juri AI Innovation",
+              email: credentials.email,
               role: "officer",
             };
           }

@@ -155,7 +155,7 @@ export default function RegionSearchBar({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setIsFocused(true)}
-            placeholder="Cari daerah di Bali (contoh: Desa Canggu, Sanur, Kec. Ubud, Kab. Badung...)"
+            placeholder="Cari daerah di Madura (contoh: Labang, Camplong, Kolpajung, Kalianget, Bangkalan...)"
             className="w-full pl-10 pr-28 py-3 rounded-xl border border-[#d1d8cd] bg-white text-xs sm:text-sm text-[#141b12] placeholder:text-[#9ca896] focus:border-[#266210] focus:ring-2 focus:ring-[#266210]/20 outline-none transition-all shadow-sm"
           />
 

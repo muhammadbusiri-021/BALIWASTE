@@ -167,10 +167,10 @@ export default function BaliLocationPicker({
       <div className="absolute top-2.5 left-2.5 right-2.5 z-[1000] flex items-center justify-between gap-2 rounded-lg bg-white/95 backdrop-blur-sm px-3 py-1.5 shadow-md border border-[#e2e7df] text-[11px] text-[#15370d]">
         <div className="flex items-center gap-1.5 font-semibold">
           <span className="flex h-2 w-2 rounded-full bg-[#266210] animate-pulse" />
-          Peta Terkunci Khusus Pulau Bali
+          Peta Terkunci Khusus Pulau Madura
         </div>
         <span className="text-[#52604d] hidden sm:inline">
-          Klik atau geser pin di pulau Bali
+          Klik atau geser pin di Pulau Madura
         </span>
       </div>
 
@@ -179,7 +179,7 @@ export default function BaliLocationPicker({
 
       {/* Footer Status */}
       <div className="bg-[#f5f7f4] px-3 py-1.5 border-t border-[#e2e7df] flex items-center justify-between text-[11px] text-[#52604d]">
-        <span>Area: 9 Kabupaten/Kota di Bali</span>
+        <span>Area: 4 Kabupaten di Madura (Bangkalan, Sampang, Pamekasan, Sumenep)</span>
         {latitude !== null && longitude !== null && (
           <span className="font-semibold text-[#15370d]">
             Titik: {latitude.toFixed(4)}, {longitude.toFixed(4)}

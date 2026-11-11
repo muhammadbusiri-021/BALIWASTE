@@ -31,7 +31,7 @@ export default function Home() {
               className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md px-3.5 py-1.5 text-xs font-semibold text-white/95 border border-white/15 shadow-sm"
             >
               <span className="flex h-2 w-2 rounded-full bg-[#48bb22] animate-pulse" />
-              Bali Waste Intelligence System
+              Madura Waste Intelligence System
             </div>
 
             {/* Main Headline - Left on mobile, center on desktop */}
@@ -41,7 +41,7 @@ export default function Home() {
               suppressHydrationWarning
               className="mt-6 text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl leading-[1.18]"
             >
-              Pemantauan & Penanganan Sampah Bali Berbasis{" "}
+              Pemantauan &amp; Penanganan Sampah Madura Berbasis{" "}
               <span className="text-[#65da3c]">Artificial Intelligence</span>
             </h1>
 
@@ -55,7 +55,7 @@ export default function Home() {
               Sistem kecerdasan buatan terpadu untuk mengidentifikasi jenis
               sampah dari foto, memetakan sebaran titik hotspot secara
               geospasial, dan mengotomasi rekomendasi penanganan taktis demi
-              menjaga kelestarian alam Pulau Dewata.
+              menjaga kelestarian lingkungan Pulau Madura.
             </p>
 
             {/* CTA Buttons */}
@@ -103,7 +103,7 @@ export default function Home() {
               Empat Fitur Inti Berbasis AI
             </h2>
             <p className="mt-2 text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#15370d]">
-              Solusi Cerdas Menjawab Tantangan Sampah di Bali
+              Solusi Cerdas Menjawab Tantangan Sampah di Madura
             </p>
           </div>
 
@@ -120,7 +120,7 @@ export default function Home() {
                 <Camera className="h-6 w-6 text-[#266210]" />
               </div>
               <h3 className="mt-4 text-base sm:text-lg font-bold text-[#15370d]">
-                Pelaporan & AI Vision
+                Pelaporan &amp; AI Vision
               </h3>
               <p className="mt-2 text-xs sm:text-sm text-[#52604d] leading-relaxed">
                 Masyarakat mengunggah foto sampah. Gemini Vision AI otomatis
@@ -147,12 +147,12 @@ export default function Home() {
                 Waste Hotspot Mapping
               </h3>
               <p className="mt-2 text-xs sm:text-sm text-[#52604d] leading-relaxed">
-                Visualisasi titik persebaran timbulan sampah di seluruh 9
-                kabupaten/kota se-Bali secara geospasial dengan indikator warna
-                tingkat urgensi.
+                Visualisasi titik persebaran timbulan sampah di seluruh 4
+                kabupaten se-Madura (Bangkalan, Sampang, Pamekasan, Sumenep)
+                secara geospasial dengan indikator warna tingkat urgensi.
               </p>
               <div className="mt-4 inline-flex items-center text-xs font-semibold text-[#266210]">
-                Geo-clustering & Spatial Map →
+                Geo-clustering &amp; Spatial Map →
               </div>
             </Link>
 
@@ -313,11 +313,11 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div className="max-w-2xl text-left">
               <h3 className="text-xl sm:text-2xl font-bold tracking-tight">
-                Wujudkan Bali Bersih dari Sampah
+                Wujudkan Madura Bersih dari Sampah
               </h3>
               <p className="mt-2 text-xs sm:text-sm text-[#d6e4d2] leading-relaxed">
-                Implementasi terpadu Pergub Bali No. 97/2018 dan 47/2019 melalui
-                inovasi teknologi kecerdasan buatan.
+                Implementasi terpadu Perda Pengelolaan Persampahan di 4 Kabupaten se-Madura
+                melalui inovasi teknologi kecerdasan buatan.
               </p>
             </div>
             <div className="pt-2 md:pt-0 shrink-0">

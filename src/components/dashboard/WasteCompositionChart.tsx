@@ -19,7 +19,7 @@ export default function WasteCompositionChart({
         <div>
           <h3 className="text-base font-bold text-[#15370d] flex items-center gap-2">
             <PieChart className="h-4 w-4 text-[#266210]" />
-            <span>Komposisi Jenis Sampah Terdeteksi di Bali</span>
+            <span>Komposisi Jenis Sampah Terdeteksi di Madura</span>
           </h3>
           <p className="text-xs text-[#52604d] mt-0.5">
             Hasil identifikasi visual AI Gemini Vision di seluruh titik timbulan
@@ -94,7 +94,7 @@ export default function WasteCompositionChart({
         <div className="space-y-0.5 leading-relaxed">
           <span className="font-bold">Analisis Regulasi Daerah: </span>
           <span>
-            Dominasi sampah plastik sekali pakai (38%) menjadi target intervensi utama Peraturan Gubernur Bali No. 97/2018. Disposisi terpilah limbah organik (32%) dialihkan ke fasilitas komposting TPS3R desa adat sesuai Pergub Bali No. 47/2019.
+            Dominasi sampah plastik sekali pakai (38%) menjadi target intervensi utama Peraturan Daerah di 4 Kabupaten se-Madura. Disposisi terpilah limbah organik (32%) dialihkan ke fasilitas komposting TPS3R desa/kelurahan.
           </span>
         </div>
       </div>

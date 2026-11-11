@@ -139,7 +139,7 @@ export default function HotspotDetailModal({ hotspot, onClose }: HotspotDetailMo
               <div className="mt-2 flex items-start gap-2 text-xs text-[#52604d]">
                 <MapPin className="h-4 w-4 text-[#266210] flex-shrink-0 mt-0.5" />
                 <span className="leading-relaxed">
-                  {hotspot.address || "Wilayah Pulau Bali"}
+                  {hotspot.address || "Wilayah Pulau Madura"}
                 </span>
               </div>
               <div className="mt-1 flex items-center gap-4 text-[11px] text-[#52604d]">

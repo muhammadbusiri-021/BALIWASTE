@@ -54,7 +54,7 @@ export function Navbar() {
               isTransparent ? "text-white" : "text-[#15370d]"
             }`}
           >
-            BALI
+            MADURA
             <span
               className={`font-extrabold transition-colors duration-300 ${
                 isTransparent ? "text-[#65da3c]" : "text-[#266210]"

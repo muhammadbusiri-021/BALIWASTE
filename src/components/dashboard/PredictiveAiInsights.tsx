@@ -85,7 +85,7 @@ export default function PredictiveAiInsights({
             <span>Proyeksi Timbulan Sampah 30 Hari Mendatang</span>
           </p>
           <p className="text-[#52604d] leading-relaxed max-w-2xl">
-            Model machine learning memproyeksikan potensi peningkatan timbulan sampah sebesar <strong>+18.5%</strong> di area pesisir barat Bali (Kuta, Seminyak, Canggu) akibat peralihan angin muson barat serta peningkatan pergerakan wisatawan domestik akhir tahun.
+            Model machine learning memproyeksikan potensi peningkatan timbulan sampah sebesar <strong>+18.5%</strong> di koridor pesisir selatan Madura (Suramadu Labang, Camplong, Branta, Kalianget) akibat pasang surut muson Selat Madura dan lonjakan mobilitas warga akhir pekan.
           </p>
         </div>
 

@@ -37,7 +37,7 @@ const BaliHotspotMap = dynamic(
     loading: () => (
       <div className="h-full min-h-[460px] w-full rounded-2xl bg-[#edf1eb] animate-pulse flex flex-col items-center justify-center gap-2 text-xs text-[#52604d] border border-[#d1d8cd]">
         <Loader2 className="h-6 w-6 animate-spin text-[#266210]" />
-        <span className="font-medium">Memuat Peta Interaktif Hotspot Bali...</span>
+        <span className="font-medium">Memuat Peta Interaktif Hotspot Madura...</span>
       </div>
     ),
   }
@@ -117,11 +117,11 @@ export default function HotspotPage() {
         timestamp: Date.now(),
       });
     } else {
-      // Kembali ke seluruh Bali
+      // Kembali ke seluruh Madura
       setFlyToTarget({
-        lat: -8.4095,
-        lng: 115.1889,
-        zoom: 10,
+        lat: -7.08,
+        lng: 113.35,
+        zoom: 9.5,
         timestamp: Date.now(),
       });
     }
@@ -207,11 +207,11 @@ export default function HotspotPage() {
               <span>Waste Hotspot Intelligence Mapping</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-[#15370d] tracking-tight">
-              Peta Hotspot Sampah Pulau Bali
+              Peta Hotspot Sampah Pulau Madura
             </h1>
             <p className="mt-1.5 text-xs sm:text-sm text-[#52604d] max-w-2xl leading-relaxed">
               Pantau persebaran titik timbulan sampah di seluruh desa, kecamatan,
-              dan kabupaten di Bali secara real-time dengan analisis keparahan dan rekomendasi tindakan AI.
+              dan kabupaten di Madura secara real-time dengan analisis keparahan dan rekomendasi tindakan AI.
             </p>
           </div>
 
@@ -246,7 +246,7 @@ export default function HotspotPage() {
             </div>
             <p className="text-2xl font-black text-[#15370d]">{stats.total}</p>
             <p className="text-[11px] text-[#52604d] mt-0.5">
-              {activeRegion ? `Di area ${activeRegion.name}` : "Di seluruh 9 Kabupaten Bali"}
+              {activeRegion ? `Di area ${activeRegion.name}` : "Di seluruh 4 Kabupaten Madura"}
             </p>
           </div>
 

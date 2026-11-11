@@ -292,7 +292,7 @@ export default function TaskDispatchMatrix({
                     </h3>
                     <p className="text-[11px] text-[#52604d] mt-1 flex items-center gap-1">
                       <MapPin className="h-3.5 w-3.5 text-[#266210] flex-shrink-0" />
-                      <span className="line-clamp-1">{task.address || "Pulau Bali"}</span>
+                      <span className="line-clamp-1">{task.address || "Pulau Madura"}</span>
                     </p>
                   </div>
 

@@ -14,9 +14,9 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "BALIWASTE — Bali Waste Intelligence System",
+  title: "MADURAWASTE — Madura Waste Intelligence System",
   description:
-    "Platform pemantauan, pelaporan, analisis, dan rekomendasi penanganan sampah berbasis Artificial Intelligence untuk Bali Smart Society.",
+    "Platform pemantauan, pelaporan, analisis, dan rekomendasi penanganan sampah berbasis Artificial Intelligence untuk Madura Smart Society.",
 };
 
 export default function RootLayout({
